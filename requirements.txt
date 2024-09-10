@@ -1,0 +1,2 @@
+pdf2image==1.17.0
+pdflatex==0.1.3

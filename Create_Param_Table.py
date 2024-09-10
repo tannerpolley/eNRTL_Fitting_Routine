@@ -69,4 +69,4 @@ def create_param_table(df, title='Table Title', folder=r'data\Parameters', plot=
 
 if __name__ == '__main__':
     df_fit = pd.read_csv(r'data\Parameters\Parameters_fit.csv')
-    create_param_pic(df_fit, 'Testing title')
+    create_param_table(df_fit, 'Testing title')
