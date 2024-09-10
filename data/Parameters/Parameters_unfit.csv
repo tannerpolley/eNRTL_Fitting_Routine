@@ -1,0 +1,17 @@
+Description,Name,Value,Uncertainty,Percent,Object,Object_Name
+bic rxn coeff,"$k_{bic,1}$",176.72,0.0,0.0,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1
+bic rxn coeff,"$k_{bic,2}$",-2909.0,0.0,0.0,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2
+bic rxn coeff,"$k_{bic,3}$",-28.46,0.0,0.0,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3
+bic rxn coeff,"$k_{bic,4}$",0.0,0.0,0.0,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_4,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_4
+car rxn coeff,"$k_{car,1}$",233.4,0.0,0.0,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1
+car rxn coeff,"$k_{car,2}$",-3410.0,0.0,0.0,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2
+car rxn coeff,"$k_{car,3}$",-36.8,0.0,0.0,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3
+car rxn coeff,"$k_{car,4}$",0.0,0.0,0.0,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_4,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_4
+eNRTL m-ca,"$A_{H_2O,(MEAH^+, HCO3^-)}$",0.0,0.0,0.0,"params.Liq.tau_A[H2O,'MEAH^+, HCO3^-']","params.Liq.tau_A[H2O,'MEAH^+, HCO3^-']"
+eNRTL m-ca,"$B_{H_2O,(MEAH^+, HCO3^-)}$",0.0,0.0,0.0,"params.Liq.tau_B[H2O,'MEAH^+, HCO3^-']","params.Liq.tau_B[H2O,'MEAH^+, HCO3^-']"
+eNRTL m-ca,"$A_{H_2O,(MEAH^+, MEACOO^-)}$",0.0,0.0,0.0,"params.Liq.tau_A[H2O,'MEAH^+, MEACOO^-']","params.Liq.tau_A[H2O,'MEAH^+, MEACOO^-']"
+eNRTL m-ca,"$B_{H_2O,(MEAH^+, MEACOO^-)}$",0.0,0.0,0.0,"params.Liq.tau_B[H2O,'MEAH^+, MEACOO^-']","params.Liq.tau_B[H2O,'MEAH^+, MEACOO^-']"
+eNRTL ca-m,"$A_{(MEAH^+, HCO3^-),H_2O)}$",0.0,0.0,0.0,"params.Liq.tau_A['MEAH^+, HCO3^-',H2O]","params.Liq.tau_A['MEAH^+, HCO3^-',H2O]"
+eNRTL ca-m,"$B_{(MEAH^+, HCO3^-),H_2O)}$",0.0,0.0,0.0,"params.Liq.tau_B['MEAH^+, HCO3^-',H2O]","params.Liq.tau_B['MEAH^+, HCO3^-',H2O]"
+eNRTL ca-m,"$A_{(MEAH^+, MEACOO^-),H_2O)}$",0.0,0.0,0.0,"params.Liq.tau_A['MEAH^+, MEACOO^-',H2O]","params.Liq.tau_A['MEAH^+, MEACOO^-',H2O]"
+eNRTL ca-m,"$B_{(MEAH^+, MEACOO^-),H_2O)}$",0.0,0.0,0.0,"params.Liq.tau_B['MEAH^+, MEACOO^-',H2O]","params.Liq.tau_B['MEAH^+, MEACOO^-',H2O]"

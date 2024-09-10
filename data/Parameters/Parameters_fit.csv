@@ -1,0 +1,17 @@
+Description,Name,Value,Uncertainty,Percent,Object,Object_Name
+bic rxn coeff,"$k_{bic,1}$",176.30703684668455,9.80275341501368,0.05560046604117163,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1
+bic rxn coeff,"$k_{bic,2}$",-2862.7163828130215,2197.6215448716684,0.7676700207067653,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2
+bic rxn coeff,"$k_{bic,3}$",-28.815258377754997,2.7361518550783956,0.09495496515105584,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3
+bic rxn coeff,"$k_{bic,4}$",0.014768855816745015,0.023498077332655916,1.591056045520714,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_4,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_4
+car rxn coeff,"$k_{car,1}$",234.18416105846302,9.790629987396919,0.041807396124252535,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1
+car rxn coeff,"$k_{car,2}$",-2054.7346183818163,1745.0271347829796,0.8492712972136794,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2
+car rxn coeff,"$k_{car,3}$",-36.11200130178405,2.598264826606256,0.07195017536948009,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3
+car rxn coeff,"$k_{car,4}$",-0.01166388802377246,0.02081005817561895,1.7841442007335335,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_4,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_4
+eNRTL m-ca,"$A_{H_2O,(MEAH^+, HCO3^-)}$",1.4569583856468655,5.6825309813506815,3.9002699303780948,"params.Liq.tau_A[H2O,'MEAH^+, HCO3^-']","params.Liq.tau_A[H2O,'MEAH^+, HCO3^-']"
+eNRTL m-ca,"$B_{H_2O,(MEAH^+, HCO3^-)}$",3203.9040529446675,1776.4776521377817,0.5544728003028192,"params.Liq.tau_B[H2O,'MEAH^+, HCO3^-']","params.Liq.tau_B[H2O,'MEAH^+, HCO3^-']"
+eNRTL m-ca,"$A_{H_2O,(MEAH^+, MEACOO^-)}$",-1.7229084905776633,7.021177646227223,4.075188952068566,"params.Liq.tau_A[H2O,'MEAH^+, MEACOO^-']","params.Liq.tau_A[H2O,'MEAH^+, MEACOO^-']"
+eNRTL m-ca,"$B_{H_2O,(MEAH^+, MEACOO^-)}$",-576.07051518797,2561.667018929786,4.446794188197467,"params.Liq.tau_B[H2O,'MEAH^+, MEACOO^-']","params.Liq.tau_B[H2O,'MEAH^+, MEACOO^-']"
+eNRTL ca-m,"$A_{(MEAH^+, HCO3^-),H_2O)}$",-1.4089866186972033,2.7053388524637088,1.9200600038097995,"params.Liq.tau_A['MEAH^+, HCO3^-',H2O]","params.Liq.tau_A['MEAH^+, HCO3^-',H2O]"
+eNRTL ca-m,"$B_{(MEAH^+, HCO3^-),H_2O)}$",-936.3172476895868,819.6460897337137,0.8753935610566125,"params.Liq.tau_B['MEAH^+, HCO3^-',H2O]","params.Liq.tau_B['MEAH^+, HCO3^-',H2O]"
+eNRTL ca-m,"$A_{(MEAH^+, MEACOO^-),H_2O)}$",-1.3658602355675755,4.552261308536951,3.3328895519425417,"params.Liq.tau_A['MEAH^+, MEACOO^-',H2O]","params.Liq.tau_A['MEAH^+, MEACOO^-',H2O]"
+eNRTL ca-m,"$B_{(MEAH^+, MEACOO^-),H_2O)}$",128.2800135660332,1497.7831439594913,11.675888568475205,"params.Liq.tau_B['MEAH^+, MEACOO^-',H2O]","params.Liq.tau_B['MEAH^+, MEACOO^-',H2O]"
