@@ -11,6 +11,7 @@ from idaes.models_extra.column_models.properties import ModularPropertiesInheren
 from idaes.models.properties.modular_properties.base.generic_property import (
     GenericParameterBlock,
 )
+from idaes.models.properties.modular_properties.phase_equil.henry import henry_pressure
 import idaes.core.util.scaling as iscale
 from Parameter_Setup import setup_param_scaling, load_fitted_params
 from eNRTL_property_setup import get_prop_dict
@@ -70,6 +71,18 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
     sigma_avg_2 = []
     fig_VLE, ax_VLE = plt.subplots(figsize=(14, 10))
     fig_Ch_Eq, ax_Ch_Eq = plt.subplots(figsize=(10, 10))
+    # fig_P, ax_P = plt.subplots(figsize=(14, 10))
+    # fig_act, ax_act = plt.subplots(figsize=(10, 10))
+
+    compare_data = {
+        'temperature': [],
+        'loading': [],
+        'fug_CO2': [],
+        'act_coeff_CO2': [],
+        'Henry_CO2': [],
+        'x_CO2': [],
+        'Pressure': []
+    }
 
     # Iterates through each temperature value chosen
     for i_t, T in enumerate(Temperature):
@@ -96,10 +109,15 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
         for molecule in molecules_ions:
             x_true[molecule] = []
 
-        P_CO2_model = []
+        act = {}
+        for molecule in molecules_ions:
+            act[molecule] = []
+
         model_data = {
+            'P': [],
             'P_CO2': [],
-            'x_true': x_true
+            'x_true': x_true,
+            'act': act
         }
         for alpha in loading:
             m = pyo.ConcreteModel()
@@ -114,7 +132,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
             for c in components:
                 blk.mole_frac_comp[c].fix(x_dic[c])
             blk.temperature.fix(T_K)
-            blk.pressure.fix(P_sys)
+            # blk.pressure.fix(P_sys)
 
             iscale.calculate_scaling_factors(m)
             state_init = ModularPropertiesInherentReactionsInitializer(solver="ipopt",
@@ -126,9 +144,22 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
             solver.solve(m_scaled, tee=False)
             pyo.TransformationFactory('core.scale_model').propagate_solution(m_scaled, m)
 
+            model_data['P'].append(sum([pyo.value(blk.fug_phase_comp["Liq", m]) / 1e3 for m in molecules]))
+
+            for molecule in molecules_ions:
+                model_data['act'][molecule].append(pyo.value(blk.act_coeff_phase_comp_true["Liq", molecule]))
+
             model_data['P_CO2'].append(pyo.value(blk.fug_phase_comp["Liq", "CO2"]) / 1e3)
             for molecule in molecules_ions:
                 model_data['x_true'][molecule].append(pyo.value(blk.mole_frac_phase_comp_true["Liq", molecule]))
+
+            compare_data['temperature'].append(T)
+            compare_data['loading'].append(alpha)
+            compare_data['fug_CO2'].append(pyo.value(blk.fug_phase_comp["Liq", "CO2"]) / 1e3)
+            compare_data['act_coeff_CO2'].append(pyo.value(blk.act_coeff_phase_comp_true["Liq", 'CO2']))
+            compare_data['Henry_CO2'].append(pyo.value(henry_pressure(blk, 'Liq', 'CO2', T_K)))
+            compare_data['x_CO2'].append(pyo.value(blk.mole_frac_phase_comp_true["Liq", 'CO2']))
+            compare_data['Pressure'].append(sum([pyo.value(blk.fug_phase_comp["Liq", m]) / 1e3 for m in molecules]))
 
         P_CO2_model_interp = interp1d(loading, model_data['P_CO2'], kind='cubic')
         P_CO2_Roch = Rochelle_fit(loading_constrained, T_K)
@@ -312,11 +343,23 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
 
     plt.show()
 
+    for k, v in compare_data.items():
+        print(k, len(v))
+
+    pd.DataFrame(compare_data).to_csv('compare_data_with_out_eNRTL.csv', index=False)
 
 if __name__ == '__main__':
     df = pd.read_csv(r'data\Parameters\Parameters_fit.csv')
 
     from Fitting_Routine import system_fit_dic, species_dic, optarg, column_names, get_mole_fraction
+
+    # system_fit_dic = {
+    #     # 'temperature': [40.0, 60.0, 80.0, 100.0, 120.0],
+    #     'temperature': [40.0],
+    #     'pressure': 101325,
+    #     'amine_weight_percent': .3,
+    #     'loading_constraints': [.1, .6],
+    # }
 
     config = get_prop_dict(["H2O", "MEA", "CO2"])
     dataset_dir = r"data\data_sets_to_load"

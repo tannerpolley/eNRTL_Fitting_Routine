@@ -51,8 +51,8 @@ param_dic = {'rxn_coeffs': [
     'tau_B',
     # 'tau_alpha',
 ], 'interactions': [
-    'm-ca',
-    'ca-m',
+    # 'm-ca',
+    # 'ca-m',
     # 'm1-m2',
     # 'm2-m1',
     # "ca1-ca2",
@@ -65,7 +65,8 @@ species_dic = {
 }
 system_fit_dic = {
               'temperature': [40.0, 60.0, 80.0, 100.0, 120.0],
-              'pressure': 200000,
+              # 'temperature': [40.0],
+              'pressure': 101325,
               'amine_weight_percent': .3,
               'loading_constraints': [.1, .6],
               }
@@ -78,6 +79,7 @@ column_names = {
     'heat_of_absorption': 'dH_abs'
 }
 param_table = True
+
 
 def get_mole_fraction(CO2_loading, amine_concentration):
     MW_MEA = 61.084
