@@ -20,10 +20,24 @@ PLOT_FILE = os.path.join("data", "Plots", "Calorimetry_Validation.png")
 
 
 def generate():
-    observations = pd.read_csv(
-        os.path.join("data", "data_sets_to_load", "kim_2007_dHabs.csv")
+    inputs = [
+        ("Kim and Svendsen 2007", "kim_2007_dHabs.csv", 0.022),
+        ("Kim et al. 2014", "kim_2014_dHabs.csv", None),
+    ]
+    observations = pd.concat(
+        [
+            pd.read_csv(os.path.join("data", "data_sets_to_load", filename)).assign(
+                source=source,
+            )
+            for source, filename, _ in inputs
+        ],
+        ignore_index=True,
     )
-    groups = list(observations.groupby(["temperature", "experiment"], sort=False))
+    observations["heat_uncertainty_fraction"] = observations.source.map(
+        {source: uncertainty for source, _, uncertainty in inputs}
+    )
+    group_columns = ["source", "temperature", "experiment"]
+    groups = list(observations.groupby(group_columns, sort=False))
 
     model = pyo.ConcreteModel()
     model.params = GenericParameterBlock(**get_prop_dict(species_dic["components"]))
@@ -50,7 +64,7 @@ def generate():
 
     records = []
     start = 0
-    for (_, experiment), group in groups:
+    for (source, _, experiment), group in groups:
         old = model.states[start]
         loading_start = 0.003
         for offset, (_, row) in enumerate(group.iterrows(), start=1):
@@ -61,15 +75,24 @@ def generate():
             observed = row["dH_abs"]
             records.append(
                 {
+                    "source": source,
                     "temperature_C": row["temperature"],
                     "experiment": row["experiment"],
-                    "role": "fit" if bool(row["fit"]) else "holdout",
+                    "role": (
+                        "fit"
+                        if bool(row["fit"])
+                        else "external validation"
+                        if source == "Kim et al. 2014"
+                        else "temperature holdout"
+                    ),
                     "loading_start": loading_start,
                     "loading_end": row["CO2_loading"],
                     "observed_kJ_mol_CO2": observed,
                     "predicted_kJ_mol_CO2": predicted,
                     "residual_kJ_mol_CO2": predicted - observed,
-                    "observed_uncertainty_kJ_mol_CO2": 0.022 * observed,
+                    "observed_uncertainty_kJ_mol_CO2": (
+                        row["heat_uncertainty_fraction"] * observed
+                    ),
                 }
             )
             old = current
@@ -77,14 +100,17 @@ def generate():
         start += len(group) + 1
 
     result = pd.DataFrame(records)
-    assert len(result) == 86
-    assert result.groupby(["temperature_C", "experiment"])["loading_end"].apply(
+    assert len(result) == 113
+    assert result.groupby(["source", "temperature_C", "experiment"])["loading_end"].apply(
         lambda values: values.is_monotonic_increasing
     ).all()
     result.to_csv(DATA_FILE, index=False)
-    for role, group in result.groupby("role"):
+    for (source, role, temperature), group in result.groupby(
+        ["source", "role", "temperature_C"], sort=False
+    ):
         print(
-            f"{role}: n={len(group)}, MAE={group.residual_kJ_mol_CO2.abs().mean():.4f}, "
+            f"{source}, {temperature:g} C, {role}: n={len(group)}, "
+            f"MAE={group.residual_kJ_mol_CO2.abs().mean():.4f}, "
             f"RMSE={(group.residual_kJ_mol_CO2.pow(2).mean()) ** 0.5:.4f}, "
             f"bias={group.residual_kJ_mol_CO2.mean():.4f} kJ/mol"
         )
@@ -95,31 +121,46 @@ def render():
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), sharey=True)
     for axis, temperature in zip(axes, (40, 80, 120)):
         subset = data[data.temperature_C == temperature]
-        for experiment, group in subset.groupby("experiment"):
-            color = f"C{int(experiment) - 1}"
-            axis.errorbar(
-                group.loading_end,
-                group.observed_kJ_mol_CO2,
-                yerr=group.observed_uncertainty_kJ_mol_CO2,
-                fmt="o",
-                color=color,
-                capsize=2,
-                label=f"Run {int(experiment)} observed",
+        for (source, experiment), group in subset.groupby(["source", "experiment"]):
+            color = "C2" if source == "Kim et al. 2014" else f"C{int(experiment) - 1}"
+            label = (
+                "Kim et al. 2014"
+                if source == "Kim et al. 2014"
+                else f"Kim-Svendsen 2007 run {int(experiment)}"
             )
+            uncertainty = group.observed_uncertainty_kJ_mol_CO2
+            if uncertainty.notna().any():
+                axis.errorbar(
+                    group.loading_end,
+                    group.observed_kJ_mol_CO2,
+                    yerr=uncertainty,
+                    fmt="o",
+                    color=color,
+                    capsize=2,
+                    label=f"{label} observed",
+                )
+            else:
+                axis.scatter(
+                    group.loading_end,
+                    group.observed_kJ_mol_CO2,
+                    marker="o",
+                    color=color,
+                    label=f"{label} observed",
+                )
             axis.scatter(
                 group.loading_end,
                 group.predicted_kJ_mol_CO2,
                 marker="x",
                 color=color,
-                label=f"Run {int(experiment)} model",
+                label=f"{label} model",
             )
-        role = subset.role.iloc[0]
-        axis.set_title(f"{temperature} °C ({role})")
+        axis.set_title(f"{temperature} °C")
         axis.set_xlabel("CO$_2$ loading (mol/mol MEA)")
         axis.grid(alpha=0.25)
     axes[0].set_ylabel("Differential heat of absorption (kJ/mol CO$_2$)")
-    axes[-1].legend(fontsize=8)
-    fig.tight_layout()
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="outside lower center", ncol=3, fontsize=8)
+    fig.tight_layout(rect=(0, 0.14, 1, 1))
     fig.savefig(PLOT_FILE, dpi=200)
     plt.close(fig)
 

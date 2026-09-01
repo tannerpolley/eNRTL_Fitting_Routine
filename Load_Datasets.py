@@ -47,7 +47,10 @@ def add_VLE_dataset(params, df, column_names, species_dic, get_mole_fraction, ob
 
 def add_ABS_dataset(m, params, df, column_names, species_dic, get_mole_fraction, obj_expr):
     idx_start = 0
-    group_columns = [column_names['temperature'], 'experiment']
+    group_columns = (
+        (['source'] if 'source' in df.columns else [])
+        + [column_names['temperature'], 'experiment']
+    )
     for _, experiment in df.groupby(group_columns, sort=False):
         T = experiment.iloc[0][column_names['temperature']] + 273.15
 
@@ -136,11 +139,14 @@ def load_datasets(m, obj_expr, dataset_dir, species_dic, get_mole_fraction, colu
         dataset_type = dataset_type.split('.')[0]
         df = pd.read_csv(filename, index_col=None)
         dfs.append(df)
-        param_block_name = name + '_' + dataset_type
+        param_block_name = name + '_' + year + '_' + dataset_type
         param_block_names.append(param_block_name)
 
         if dataset_type == 'dHabs':
             fit_df = df[df['fit'].astype(bool)]
+            if fit_df.empty:
+                param_block_names.pop()
+                continue
             n_experiments = fit_df.groupby([column_names['temperature'], 'experiment']).ngroups
             setattr(m, param_block_name, m.params.build_state_block(range(len(fit_df) + n_experiments),
                                                                     defined_state=True))
