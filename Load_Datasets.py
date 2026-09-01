@@ -114,6 +114,8 @@ def add_ChEq_dataset(params, df, column_names, species_dic, get_mole_fraction, o
                 pass
 
         for molecule in molecules_ions:
+            if molecule == 'CO3^2-':
+                continue
             x_true_model = blk.mole_frac_phase_comp_true["Liq", molecule]
             x_true_data = row[molecule]
             obj_expr += loss(x_true_model - x_true_data)*10000

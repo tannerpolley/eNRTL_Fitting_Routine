@@ -1,11 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 df1 = pd.read_csv('compare_data_with_out_eNRTL.csv')
 df2 = pd.read_csv('compare_data_with_eNRTL.csv')
 T_range = df2['temperature'].unique()
 mfc2 = ['tab:orange', 'tab:blue', 'tab:green', 'tab:red', 'tab:purple']
-columns = ['x_CO2', 'Henry_CO2', 'act_coeff_CO2', 'fug_CO2', 'Pressure']
+columns = ['x_CO2', 'Henry_CO2', 'act_coeff_CO2', 'fug_CO2', 'Pressure', 'fug_H2O']
 
 for c in columns:
     fig, axs = plt.subplots(figsize=(12, 10))
@@ -45,6 +46,21 @@ for i, T in enumerate(T_range):
              label=f'T = {T}: With eNRTL: Henry', color=mfc2[i])
     axs.plot(df_cut_2['loading'].to_numpy(), df_cut_2['fug_CO2'].to_numpy(),
              label=f'T = {T}: With eNRTL: fug_CO2', color=mfc2[i])
+    axs.legend()
+    axs.set_xlabel("CO$_{2}$ Loading, mol CO$_{2}$/mol MEA")
+    axs.set_ylabel("Pressure (kPa)")
+    axs.set_yscale('log')
+plt.show()
+
+fig, axs = plt.subplots(figsize=(12, 10))
+for i, T in enumerate(T_range):
+    T_K = T + 273.15
+    psat_H2O = np.exp(73.649 + -7258.2/T_K + -7.3037*np.log(T_K) + 4.1653e-6*T_K**2)
+    df_cut_2 = df2[df2['temperature'] == T]
+    axs.plot(df_cut_2['loading'].to_numpy(), df_cut_2['fug_H2O'].to_numpy(), '--',
+             label=f'T = {T}: fug_H2O', color=mfc2[i])
+    axs.plot(df_cut_2['loading'].to_numpy(), np.ones(len(df_cut_2['fug_H2O']))*psat_H2O/1e3,
+             label=f'T = {T}: Psat_H2O', color=mfc2[i])
     axs.legend()
     axs.set_xlabel("CO$_{2}$ Loading, mol CO$_{2}$/mol MEA")
     axs.set_ylabel("Pressure (kPa)")

@@ -95,19 +95,20 @@ def get_estimated_params(m, fit_param_dic):
                 param_dic['Uncertainty'].append(0.0)
                 param_dic['Percent'].append(0.0)
 
-    for pair in component_pairs:
-        if pair in component_pairs_chosen:
-            for parameter in parameters:
-                letter = parameter[-1]
-                obj = getattr(m.params.Liq, parameter)
-                obj = obj[pair]
-                param_dic['Description'].append(f"eNRTL {dic[pair][1]}")
-                param_dic['Object'].append(obj)
-                param_dic['Object_Name'].append(obj.name)
-                param_dic['Value'].append(pyo.value(obj))
-                param_dic['Name'].append('$' + letter + dic[pair][0])
-                param_dic['Uncertainty'].append(0.0)
-                param_dic['Percent'].append(0.0)
+    if len(interactions) > 0:
+        for pair in component_pairs:
+            if pair in component_pairs_chosen:
+                for parameter in parameters:
+                    letter = parameter[-1]
+                    obj = getattr(m.params.Liq, parameter)
+                    obj = obj[pair]
+                    param_dic['Description'].append(f"eNRTL {dic[pair][1]}")
+                    param_dic['Object'].append(obj)
+                    param_dic['Object_Name'].append(obj.name)
+                    param_dic['Value'].append(pyo.value(obj))
+                    param_dic['Name'].append('$' + letter + dic[pair][0])
+                    param_dic['Uncertainty'].append(0.0)
+                    param_dic['Percent'].append(0.0)
 
     folder_path = 'data\Parameters'
 

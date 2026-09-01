@@ -39,16 +39,16 @@ param_dic = {'rxn_coeffs': [
     '4',
 ], 'molecules': [
     'H2O',
-    # 'MEA',
-    # 'CO2',
+    'MEA',
+    'CO2',
 ], 'cations': [
     'MEAH^+',
 ], 'anions': [
     'MEACOO^-',
     'HCO3^-',
 ], 'parameters': [
-    'tau_A',
-    'tau_B',
+    # 'tau_A',
+    # 'tau_B',
     # 'tau_alpha',
 ], 'interactions': [
     # 'm-ca',

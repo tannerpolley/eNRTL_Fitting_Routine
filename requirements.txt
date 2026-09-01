@@ -1,2 +1,8 @@
+matplotlib==3.10.3
+numpy==2.3.1
+pandas==2.3.1
 pdf2image==1.17.0
 pdflatex==0.1.3
+Pillow==11.3.0
+pyomo==6.9.2
+scipy==1.16.0

@@ -32,7 +32,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
     for file in os.listdir(dataset_dir):
         if 'dHabs' not in file:
             name = file.split('_')[0]
-            key[name] = markers[i]
+            key[name] = markers[i % len(markers)]
             i += 1
 
     mfc = ['tab:blue', 'tab:orange', 'tab:green', 'tab:cyan', 'tab:purple']
@@ -78,10 +78,30 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
         'temperature': [],
         'loading': [],
         'fug_CO2': [],
+        'fug_H2O': [],
         'act_coeff_CO2': [],
         'Henry_CO2': [],
         'x_CO2': [],
-        'Pressure': []
+        'x_MEA': [],
+        'x_H2O': [],
+        'x_MEAH^+': [],
+        'x_MEACOO^-': [],
+        'x_HCO3^-': [],
+        'a_CO2': [],
+        'a_MEA': [],
+        'a_H2O': [],
+        'a_MEAH^+': [],
+        'a_MEACOO^-': [],
+        'a_HCO3^-': [],
+        'C_CO2': [],
+        'C_MEA': [],
+        'C_H2O': [],
+        'C_MEAH^+': [],
+        'C_MEACOO^-': [],
+        'C_HCO3^-': [],
+        'Pressure': [],
+        'K1': [],
+        'K2': []
     }
 
     # Iterates through each temperature value chosen
@@ -103,7 +123,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
                 loading_min.append(min(CO2_loading_data))
                 loading_max.append(max(CO2_loading_data))
         loading_constrained = np.linspace(min(loading_min), max(loading_max), 30)
-        loading = np.linspace(.01, 1, 30)
+        loading = np.linspace(.003, 1, 30)
 
         x_true = {}
         for molecule in molecules_ions:
@@ -156,10 +176,30 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
             compare_data['temperature'].append(T)
             compare_data['loading'].append(alpha)
             compare_data['fug_CO2'].append(pyo.value(blk.fug_phase_comp["Liq", "CO2"]) / 1e3)
+            compare_data['fug_H2O'].append(pyo.value(blk.fug_phase_comp["Liq", "H2O"]) / 1e3)
             compare_data['act_coeff_CO2'].append(pyo.value(blk.act_coeff_phase_comp_true["Liq", 'CO2']))
             compare_data['Henry_CO2'].append(pyo.value(henry_pressure(blk, 'Liq', 'CO2', T_K)))
             compare_data['x_CO2'].append(pyo.value(blk.mole_frac_phase_comp_true["Liq", 'CO2']))
+            compare_data['x_MEA'].append(pyo.value(blk.mole_frac_phase_comp_true["Liq", 'MEA']))
+            compare_data['x_H2O'].append(pyo.value(blk.mole_frac_phase_comp_true["Liq", 'H2O']))
+            compare_data['x_MEAH^+'].append(pyo.value(blk.mole_frac_phase_comp_true["Liq", 'MEAH^+']))
+            compare_data['x_MEACOO^-'].append(pyo.value(blk.mole_frac_phase_comp_true["Liq", 'MEACOO^-']))
+            compare_data['x_HCO3^-'].append(pyo.value(blk.mole_frac_phase_comp_true["Liq", 'HCO3^-']))
+            compare_data['a_CO2'].append(pyo.value(blk.act_phase_comp_true["Liq", 'CO2']))
+            compare_data['a_MEA'].append(pyo.value(blk.act_phase_comp_true["Liq", 'MEA']))
+            compare_data['a_H2O'].append(pyo.value(blk.act_phase_comp_true["Liq", 'H2O']))
+            compare_data['a_MEAH^+'].append(pyo.value(blk.act_phase_comp_true["Liq", 'MEAH^+']))
+            compare_data['a_MEACOO^-'].append(pyo.value(blk.act_phase_comp_true["Liq", 'MEACOO^-']))
+            compare_data['a_HCO3^-'].append(pyo.value(blk.act_phase_comp_true["Liq", 'HCO3^-']))
+            compare_data['C_CO2'].append(pyo.value(blk.conc_mol_phase_comp_true["Liq", 'CO2']))
+            compare_data['C_MEA'].append(pyo.value(blk.conc_mol_phase_comp_true["Liq", 'MEA']))
+            compare_data['C_H2O'].append(pyo.value(blk.conc_mol_phase_comp_true["Liq", 'H2O']))
+            compare_data['C_MEAH^+'].append(pyo.value(blk.conc_mol_phase_comp_true["Liq", 'MEAH^+']))
+            compare_data['C_MEACOO^-'].append(pyo.value(blk.conc_mol_phase_comp_true["Liq", 'MEACOO^-']))
+            compare_data['C_HCO3^-'].append(pyo.value(blk.conc_mol_phase_comp_true["Liq", 'HCO3^-']))
             compare_data['Pressure'].append(sum([pyo.value(blk.fug_phase_comp["Liq", m]) / 1e3 for m in molecules]))
+            compare_data['K1'].append(np.exp(pyo.value(blk.log_k_eq['MEA_carbamate_formation_combo'])))
+            compare_data['K2'].append(np.exp(pyo.value(blk.log_k_eq['MEA_bicarbonate_formation_combo'])))
 
         P_CO2_model_interp = interp1d(loading, model_data['P_CO2'], kind='cubic')
         P_CO2_Roch = Rochelle_fit(loading_constrained, T_K)
@@ -201,7 +241,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
                 n += len(loading_data)
                 data = ax_VLE.semilogy(loading_data, CO2_pressure_data,
                                        label=f"{T} C - {name}", linestyle="none",
-                                       marker=key[name], markersize=10, mfc=mfc[i_t], mec=mec[counter])
+                                       marker=key[name], markersize=10, mfc=mfc[i_t], mec=mec[counter % len(mec)])
                 lines_data.append(data)
 
                 counter += 1
@@ -216,16 +256,18 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
                                   # (df_data[CO2_loading] < max_loading_constraint)
                                   ]
                 loading_data = df_data[CO2_loading].to_numpy()
-                molecules_ions = list(df_data.columns)
+                data_species = list(df_data.columns)
 
-                molecules_ions.remove(amine_concentration)
-                molecules_ions.remove(temperature)
-                molecules_ions.remove(CO2_loading)
+                data_species.remove(amine_concentration)
+                data_species.remove(temperature)
+                data_species.remove(CO2_loading)
                 # try:
                 #     molecules_ions.remove('CO2')
                 # except ValueError:
                 #     pass
-                for molecule in molecules_ions:
+                for molecule in data_species:
+                    if molecule not in molecule_key:
+                        continue
                     x_true_i = df_data[molecule].to_numpy()
                     ax_Ch_Eq.plot(loading_data, x_true_i,
                                       label=f"{name}: " + "$x_{" + f"{molecule}" + "}$ data" + f" - T = {T}", linestyle="none",
@@ -322,16 +364,18 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
     fig_VLE.tight_layout()
     fig_VLE.subplots_adjust(right=0.78)
 
-    folder_path = 'data\Plots'
+    folder_path = os.path.join('data', 'Plots')
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-    plot_file = "data\Plots\Fitting_Plot.png"
+    plot_file = os.path.join(folder_path, "Fitting_Plot.png")
     if os.path.isfile(plot_file):
         os.remove(plot_file)
     fig_VLE.savefig(plot_file)
     print('New plot saved')
     ax_Ch_Eq.set_xlim(0, 1)
-    # ax_Ch_Eq.set_ylim(-.05, .125)
+    ax_Ch_Eq.set_yscale('log')
+    ax_Ch_Eq.set_yticks(np.logspace(-10, 0, 11))
+    ax_Ch_Eq.set_ylim(1e-10, 1)
     ax_Ch_Eq.set_xlabel("CO$_{2}$ Loading, mol CO$_{2}$/mol MEA", fontsize=16)
     ax_Ch_Eq.set_ylabel("x (mole fraction)", fontsize=16)
     ax_Ch_Eq.set_title(
@@ -341,15 +385,20 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
     ax_Ch_Eq.legend()
     fig_Ch_Eq.tight_layout()
 
+    plot_file = os.path.join(folder_path, "Fitting_Plot_Speciation.png")
+    if os.path.isfile(plot_file):
+        os.remove(plot_file)
+    fig_Ch_Eq.savefig(plot_file)
+
     plt.show()
 
     for k, v in compare_data.items():
         print(k, len(v))
 
-    pd.DataFrame(compare_data).to_csv('compare_data_with_out_eNRTL.csv', index=False)
+    pd.DataFrame(compare_data).to_csv('compare_data_with_eNRTL.csv', index=False)
 
 if __name__ == '__main__':
-    df = pd.read_csv(r'data\Parameters\Parameters_fit.csv')
+    df = pd.read_csv(os.path.join('data', 'Parameters', 'Parameters_fit.csv'))
 
     from Fitting_Routine import system_fit_dic, species_dic, optarg, column_names, get_mole_fraction
 
@@ -362,5 +411,5 @@ if __name__ == '__main__':
     # }
 
     config = get_prop_dict(["H2O", "MEA", "CO2"])
-    dataset_dir = r"data\data_sets_to_load"
+    dataset_dir = os.path.join('data', 'data_sets_to_load')
     plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, 10.00, optarg, config, dataset_dir, column_names)

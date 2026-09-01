@@ -41,7 +41,7 @@ from pyomo.core.expr.calculus.derivatives import Modes, differentiate
 from pyomo.util.check_units import assert_units_equivalent
 
 # Import IDAES cores
-from idaes.core import AqueousPhase, Solvent, Solute, Anion, Cation, Zwitterion
+from idaes.core import AqueousPhase, Solvent, Solute, Anion, Cation
 from idaes.core.util.exceptions import BurntToast, ConfigurationError
 from idaes.core.util.constants import Constants
 
