@@ -1,9 +1,7 @@
 Description,Name,Value,Uncertainty,Percent,Object,Object_Name
-bic rxn coeff,"$k_{bic,1}$",176.67509628350157,9.788119840996838,0.055401808443281325,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1
-bic rxn coeff,"$k_{bic,2}$",-1534.8532260525365,1568.7841199739908,1.0221069307120139,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2
-bic rxn coeff,"$k_{bic,3}$",-29.186090853276983,2.490312958308964,0.085325334277487,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3
-bic rxn coeff,"$k_{bic,4}$",0.012315921968434704,0.01907806910387765,1.549057322121243,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_4,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_4
-car rxn coeff,"$k_{car,1}$",234.21447518202274,9.788513047461864,0.041792946571105806,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1
-car rxn coeff,"$k_{car,2}$",-1515.7879130499816,1705.3438657688562,1.1250544031172942,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2
-car rxn coeff,"$k_{car,3}$",-36.66529138186024,2.6086681424503837,0.07114816340286864,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3
-car rxn coeff,"$k_{car,4}$",-0.008834687017404558,0.020673778243541604,2.3400691165192082,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_4,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_4
+bic rxn coeff,"$k_{bic,1}$",176.09307717770312,9.737723276513915,0.05529872856209536,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1
+bic rxn coeff,"$k_{bic,2}$",-2452.201969166301,574.5735583933856,0.23430923130231765,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2
+bic rxn coeff,"$k_{bic,3}$",-27.900950052327037,1.4422652791050898,0.051692335795024295,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3
+car rxn coeff,"$k_{car,1}$",234.54534602024972,9.745054114977302,0.04154869955993905,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1
+car rxn coeff,"$k_{car,2}$",-865.3102390306151,581.9883092815998,0.672577629421774,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2
+car rxn coeff,"$k_{car,3}$",-37.566894156030436,1.4415064696932958,0.03837172335051546,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3

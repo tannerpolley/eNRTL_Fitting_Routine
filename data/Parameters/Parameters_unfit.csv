@@ -2,8 +2,6 @@ Description,Name,Value,Uncertainty,Percent,Object,Object_Name
 bic rxn coeff,"$k_{bic,1}$",176.72,0.0,0.0,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1
 bic rxn coeff,"$k_{bic,2}$",-2909.0,0.0,0.0,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2
 bic rxn coeff,"$k_{bic,3}$",-28.46,0.0,0.0,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3
-bic rxn coeff,"$k_{bic,4}$",0.0,0.0,0.0,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_4,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_4
 car rxn coeff,"$k_{car,1}$",233.4,0.0,0.0,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1
 car rxn coeff,"$k_{car,2}$",-3410.0,0.0,0.0,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2
 car rxn coeff,"$k_{car,3}$",-36.8,0.0,0.0,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3
-car rxn coeff,"$k_{car,4}$",0.0,0.0,0.0,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_4,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_4

@@ -910,7 +910,7 @@ class KeqCullinaneRochelle:
 
     @staticmethod
     def return_expression(b, rblock, r_idx, T):
-        return exp(b.log_k_eq[r_idx]) * ((pyunits.m) ** 3 / pyunits.mol)
+        return exp(b.log_k_eq[r_idx])
 
     @staticmethod
     def return_log_expression(b, rblock, r_idx, T):

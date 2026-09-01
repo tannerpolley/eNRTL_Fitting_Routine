@@ -103,6 +103,10 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
         'K1': [],
         'K2': []
     }
+    state_init = ModularPropertiesInherentReactionsInitializer(
+        solver="ipopt", solver_options=optarg, output_level=init_outlevel
+    )
+    solver = get_solver("ipopt", options=optarg)
 
     # Iterates through each temperature value chosen
     for i_t, T in enumerate(Temperature):
@@ -139,29 +143,32 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
             'x_true': x_true,
             'act': act
         }
-        for alpha in loading:
-            m = pyo.ConcreteModel()
-            m.params = GenericParameterBlock(**config)
-            load_fitted_params(m, df)
-            setup_param_scaling(m)
-            m.state_block = m.params.build_state_block([0], has_phase_equilibrium=False, defined_state=True)
-            blk = m.state_block[0]
+        m = pyo.ConcreteModel()
+        m.params = GenericParameterBlock(**config)
+        load_fitted_params(m, df)
+        setup_param_scaling(m)
+        m.state_block = m.params.build_state_block([0], has_phase_equilibrium=False, defined_state=True)
+        blk = m.state_block[0]
+        blk.temperature.fix(T_K)
+
+        for i_alpha, alpha in enumerate(loading):
             x_dic = get_mole_fraction(alpha, w_amine)
             blk.flow_mol.fix(x_dic['n_T'])
             components = species_dic['components']
             for c in components:
                 blk.mole_frac_comp[c].fix(x_dic[c])
-            blk.temperature.fix(T_K)
             # blk.pressure.fix(P_sys)
 
             iscale.calculate_scaling_factors(m)
-            state_init = ModularPropertiesInherentReactionsInitializer(solver="ipopt",
-                                                                       solver_options=optarg,
-                                                                       output_level=init_outlevel)
-            state_init.initialize(m.state_block)
+            if i_alpha == 0:
+                state_init.initialize(m.state_block)
             m_scaled = pyo.TransformationFactory('core.scale_model').create_using(m, rename=False)
-            solver = get_solver("ipopt", options=optarg)
-            solver.solve(m_scaled, tee=False)
+            results = solver.solve(m_scaled, tee=False)
+            if not pyo.check_optimal_termination(results):
+                raise RuntimeError(
+                    f"Plot state failed at {T:g} C and loading {alpha:.6g}: "
+                    f"{results.solver.termination_condition}"
+                )
             pyo.TransformationFactory('core.scale_model').propagate_solution(m_scaled, m)
 
             model_data['P'].append(sum([pyo.value(blk.fug_phase_comp["Liq", m]) / 1e3 for m in molecules]))

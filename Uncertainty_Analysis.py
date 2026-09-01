@@ -69,7 +69,7 @@ def uncertainty_analysis(m_scaled, df_unfit, estimated_vars, estimated_vars_scal
             active_lbs[var.name] = val
             # print('Variables with active lower bounds:')
             # print(var.name, val)
-    for val in m_scaled.ipopt_zU_out.values():
+    for var, val in m_scaled.ipopt_zU_out.items():
         if val < -.2:
             print(var.name, val)
             active_ubs[var.name] = val
@@ -78,10 +78,14 @@ def uncertainty_analysis(m_scaled, df_unfit, estimated_vars, estimated_vars_scal
     if len(estimated_vars) > 0 and len(active_lbs) + len(active_ubs) == 0:
         H_red = get_reduced_hessian(m_scaled, estimated_vars_scaled)
         W, V = eigh(H_red)
-        inv_red_hess = V @ np.diag(1 / W) @ V.T
         W_value = 1 / W[0]
 
         if W[0] > 0:
+            print(
+                "Reduced Hessian eigenvalue range: "
+                f"{W[0]:.6e} to {W[-1]:.6e}; condition: {W[-1] / W[0]:.6e}"
+            )
+            inv_red_hess = V @ np.diag(1 / W) @ V.T
             for i, var in enumerate(estimated_vars):
                 uncertainty[i] = pyo.sqrt(inv_red_hess[i][i]) / iscale.get_scaling_factor(var, default=1)
         else:

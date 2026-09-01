@@ -37,7 +37,6 @@ param_dic = {'rxn_coeffs': [
     '1',
     '2',
     '3',
-    '4',
 ], 'molecules': [
     'H2O',
     'MEA',
@@ -148,7 +147,9 @@ if __name__ == "__main__":
         var.unfix()
     optarg.pop("nlp_scaling_method", None)  # Scaled model doesn't need user scaling
     solver = get_solver("ipopt", options=optarg)
-    solver.solve(m_scaled, tee=False)
+    results = solver.solve(m_scaled, tee=False)
+    if not pyo.check_optimal_termination(results):
+        raise RuntimeError(f"Parameter fit failed: {results.solver.termination_condition}")
     pyo.TransformationFactory('core.scale_model').propagate_solution(m_scaled, m)
 
     # %% Uncertainty Analysis
