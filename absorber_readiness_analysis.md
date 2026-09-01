@@ -1,8 +1,8 @@
 # eNRTL fitting routine: formulation and absorber-readiness analysis
 
 Date: 2026-09-01  
-Branch: `codex/absorber-readiness-analysis`  
-Base: `main` at `b489987` (`fix: make plotting save-only`)
+Branch: `codex/enrtl-enthalpy-validation`
+Analysis base: `codex/absorber-readiness-analysis` at `c9e61fa`
 
 ## Executive assessment
 
@@ -12,7 +12,7 @@ Base: `main` at `b489987` (`fix: make plotting save-only`)
 
 **verified:** The eNRTL local-interaction model is incomplete in the default fit. It contains the H2O-MEA molecular parameters, but all molecule-electrolyte terms are held at zero. A bounded test that restored the published fixed interaction values increased the present objective to 1333.36, even after refitting the reaction coefficients. Those terms cannot be switched on independently of the standard-state and calorimetric regression used to obtain them.
 
-**conclusion:** Use the six fitted reaction coefficients as provisional equilibrium initializers. Do not interpret their inverse-Hessian scales as process-design uncertainty, and do not promote the isolated eNRTL interaction fit. A full non-isothermal absorber still requires a validated enthalpy path, transport properties, kinetics, and a vapor package.
+**conclusion:** Use the six fitted reaction coefficients as provisional equilibrium initializers. Do not interpret their inverse-Hessian scales as process-design uncertainty, and do not promote the isolated eNRTL interaction fit. The repaired enthalpy path now constructs and is dimensionally consistent, but its heat-of-absorption predictions are not yet accurate enough for calorimetric regression or a trusted non-isothermal absorber.
 
 ## Reproducibility boundary
 
@@ -87,7 +87,17 @@ delta_h_rxn = R*(-k2 + k3*T + k4*T^2)
 
 With `k4=0`, this becomes `R*(-k2 + k3*T)`.
 
-**verified:** Liquid enthalpy construction still fails in the installed fork at `idaes/.../eos/enrtl.py:1356`, where a symbolic Pyomo derivative is evaluated in `if dv_dT != 0`. This prevents use of the heat-of-absorption data and blocks a trustworthy non-isothermal column energy balance.
+**verified:** The installed fork evaluates symbolic Pyomo derivatives in Python Boolean conditions at `idaes/.../eos/enrtl.py:1356`. The local `ENRTLDirectTemperatureDerivative` retains the same Akula excess-enthalpy equation while evaluating both temperature-derivative terms algebraically, so liquid enthalpy now constructs without modifying the shared IDAES checkout.
+
+**verified:** The installed apparent-basis enthalpy expression also divides an ideal molar-enthalpy sum by molar flow together with the reaction enthalpy-flow term. The local implementation divides only the reaction enthalpy flow. The repaired expression passes Pyomo's unit-consistency check and is invariant to changing total flow from 1 to 100 mol/s within `7.5e-9 J/mol` at 313.15 K, 30 wt% MEA, and loading 0.30.
+
+**reference-backed:** The Akula appendix defines excess enthalpy as `-R*T^2*d(G_ex/RT)/dT` and includes both solvent-molar-volume and relative-permittivity derivatives in the long-range contribution (eqs. C1-C12). The direct local derivative follows those terms; the closest-approach parameter remains temperature-independent, matching the installed formulation.
+
+**verified:** At loading 0.30 and 30 wt% MEA, initialized liquid enthalpies are finite: `-260.065`, `-256.749`, and `-253.299 kJ/mol` at 313.15, 353.15, and 393.15 K. Liquid heat capacity remains unimplemented in the IDAES eNRTL class, so this check establishes enthalpy construction and trend, not a complete caloric-property validation.
+
+**verified:** Using the corrected constant-pressure enthalpy difference against all 86 Kim heat-of-absorption points gives MAE `30.36 kJ/mol` and bias `-29.67 kJ/mol`. The previously intended filter (`loading <= 0.4`, observed heat `<= 130 kJ/mol`) retains 47 points and gives MAE `30.66 kJ/mol` and bias `-30.66 kJ/mol`; temperature-specific MAEs are `23.50`, `27.88`, and `43.98 kJ/mol` at 40, 80, and 120 C. The current parameters therefore show a strong temperature-dependent calorimetric deficiency.
+
+**verified:** The Kim table contains successive loading increments as small as `1e-5 mol CO2/mol MEA`. Consecutive-state finite differences at those pairs are sensitive to numerical and data precision. The heat residual remains disabled pending a differential-enthalpy calculation or a documented rule for consolidating near-duplicate loading points.
 
 ## Objective and data limitations
 
@@ -95,7 +105,7 @@ With `k4=0`, this becomes `R*(-k2 + k3*T)`.
 
 **verified:** Speciation residuals are multiplied by 10,000, VLE residuals are unweighted log-pressure errors, and no measurement covariance is supplied. The inverse reduced Hessian is therefore a local objective-curvature measure, not a calibrated parameter covariance matrix.
 
-**verified:** `Xu`, `Bottinger`, and `kim` are excluded from fitting. Some excluded VLE data remain visible in the figures. Heat-of-absorption residual construction is present but disabled because of the enthalpy failure.
+**verified:** `Xu`, `Bottinger`, and `kim` are excluded from fitting. Some excluded VLE data remain visible in the figures. Heat-of-absorption residual construction is present but remains disabled because the repaired model does not yet reproduce the calorimetry and the consecutive-difference treatment is sensitive to near-duplicate loadings.
 
 **inference:** The arbitrary balance between VLE and speciation can shift fitted parameters and makes ordinary standard-error interpretation invalid. Source-level uncertainty weights or a documented sensitivity analysis are needed before formal uncertainty claims.
 
@@ -141,8 +151,8 @@ With `k4=0`, this becomes `R*(-k2 + k3*T)`.
 ## Recommended staged path
 
 1. **Validate the liquid property interface.** Check fugacity, Henry's constant, species fractions, enthalpy, density, viscosity, surface tension, and diffusivities over absorber and stripper states, including units and finite-value checks.
-2. **Repair and validate enthalpy.** Correct the symbolic derivative failure, then compare heat capacity and heat of absorption before enabling energy balances or calorimetric regression.
-3. **Rebuild the joint thermodynamic regression.** Estimate or fix standard-state ion properties and selected water-ion-pair interactions using VLE plus calorimetry; use speciation as validation or weight it by documented uncertainty.
+2. **Complete caloric validation.** Implement or independently calculate equilibrium heat capacity, and replace near-duplicate consecutive differences with a stable differential-enthalpy evaluation.
+3. **Rebuild the joint thermodynamic regression.** Estimate or fix standard-state ion properties and selected water-ion-pair interactions using VLE plus calorimetry; use speciation as validation or weight it by documented uncertainty. Do not enable the current heat residual before this step.
 4. **Align the column interface.** Use one species naming convention, one activity/standard-state convention, validated transport methods, and a separate vapor package.
 5. **Bring up the column in stages.** Start with one or two isothermal finite elements, then energy balances, then full discretization and kinetics. Check termination and physical bounds at each stage.
 6. **Propagate prediction uncertainty.** Evaluate correlated uncertainty in equilibrium pressure/speciation through capture, rich/lean loading, temperature profile, circulation, and duty only after the thermodynamic fit has defensible uncertainty weights.
@@ -156,4 +166,4 @@ With `k4=0`, this becomes `R*(-k2 + k3*T)`.
 
 ## Bottom line
 
-The implemented reduced eNRTL equilibrium formulation is internally sound for its stated activity basis and fitted domain. The six-coefficient fit is simpler and more defensible than the previous eight-coefficient fit, and continuation reduces runtime without changing the selected equilibrium branch. The remaining uncertainty cannot be fixed by adding more free eNRTL parameters: it requires thermodynamically consistent standard-state/calorimetric regression and validated column property methods.
+The reduced eNRTL equilibrium formulation is suitable for provisional equilibrium initialization over its fitted domain, and the local enthalpy correction now provides a dimensionally consistent property path. The six-coefficient VLE/speciation fit does not reproduce calorimetry: its approximately `31 kJ/mol` low-loading heat bias is too large to treat as parameter uncertainty. The next regression must jointly address standard-state caloric properties and selected interactions before non-isothermal column predictions are trusted.

@@ -71,9 +71,9 @@ def add_ABS_dataset(m, params, df, column_names, species_dic, get_mole_fraction,
                 blk.pressure.fix(101325)
             blk.temperature.fix(T)
             CO2_obj = m.params.CO2
-            Hl_f = blk.energy_internal_mol_phase["Liq"]
+            Hl_f = blk.enth_mol_phase["Liq"]
             F_f = blk.flow_mol
-            Hl_i = blk_old.energy_internal_mol_phase["Liq"]
+            Hl_i = blk_old.enth_mol_phase["Liq"]
             F_i = blk_old.flow_mol
             H_ig = NIST.enth_mol_ig_comp.return_expression(blk, CO2_obj, blk.temperature)
 

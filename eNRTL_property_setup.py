@@ -48,7 +48,12 @@ from idaes.core.util.constants import Constants
 from idaes.models.properties.modular_properties.state_definitions import FTPx
 from idaes.models.properties.modular_properties.base.generic_property import StateIndex
 from idaes.models.properties.modular_properties.eos.ideal import Ideal
-from idaes.models.properties.modular_properties.eos.enrtl import ENRTL, EnthMolPhaseBasis
+from idaes.models.properties.modular_properties.eos.enrtl import (
+    ClosestApproach,
+    ENRTL,
+    EnthMolPhaseBasis,
+    reduced_symmetric_gibbs_phase_temperature_derivative,
+)
 from idaes.models.properties.modular_properties.eos.enrtl_reference_states import InfiniteDilutionSingleSolvent
 from idaes.models.properties.modular_properties.reactions.equilibrium_forms import log_power_law_equil
 from idaes.models.properties.modular_properties.base.utility import ConcentrationForm
@@ -61,6 +66,122 @@ import idaes.logger as idaeslog
 
 # Set up logger
 _log = idaeslog.getLogger(__name__)
+
+
+class ENRTLDirectTemperatureDerivative(ENRTL):
+    """eNRTL enthalpy with symbolic temperature derivatives kept as expressions."""
+
+    @staticmethod
+    def enth_mol_phase(b, p):
+        pobj = b.params.get_phase(p)
+        if not pobj.is_aqueous_phase():
+            return Ideal.enth_mol_phase(b, p)
+
+        try:
+            inherent_rxn_idx = b.params.inherent_reaction_idx
+        except AttributeError:
+            enth_mol_ideal = sum(
+                b.mole_frac_phase_comp_true[p, j]
+                * Ideal.enth_mol_phase_comp(b, p, j)
+                for j in b.components_in_phase(p, true_basis=True)
+            )
+            return enth_mol_ideal + ENRTLDirectTemperatureDerivative._enth_mol_phase_excess(
+                b, p
+            )
+
+        try:
+            basis = pobj.config.equation_of_state_options["enth_mol_phase_basis"]
+        except KeyError:
+            basis = EnthMolPhaseBasis.true
+
+        if basis == EnthMolPhaseBasis.true:
+            enth_mol_ideal = sum(
+                b.mole_frac_phase_comp_true[p, j]
+                * Ideal.enth_mol_phase_comp(b, p, j)
+                for j in b.components_in_phase(p, true_basis=True)
+            )
+            return enth_mol_ideal + ENRTLDirectTemperatureDerivative._enth_mol_phase_excess(
+                b, p
+            )
+        if basis != EnthMolPhaseBasis.apparent:
+            raise ConfigurationError
+
+        enth_mol_ideal = sum(
+            b.mole_frac_phase_comp_apparent[p, j]
+            * Ideal.enth_mol_phase_comp(b, p, j)
+            for j in b.components_in_phase(p, true_basis=False)
+        ) + sum(
+            b.apparent_inherent_reaction_extent[r] * b.dh_rxn[r]
+            for r in inherent_rxn_idx
+        ) / b.flow_mol_phase[p]
+        flow_true = sum(
+            b.flow_mol_phase_comp_true[p, j]
+            for j in b.components_in_phase(p, true_basis=True)
+        )
+        return (
+            enth_mol_ideal
+            + flow_true
+            / b.flow_mol_phase["Liq"]
+            * ENRTLDirectTemperatureDerivative._enth_mol_phase_excess(b, p)
+        )
+
+    @staticmethod
+    def _enth_mol_phase_excess(b, p):
+        pobj = b.params.get_phase(p)
+        pname = pobj.local_name
+        if not pobj.is_aqueous_phase():
+            units = b.params.get_metadata().derived_units
+            return 0 * units.ENERGY_MOLE
+
+        if not b.is_property_constructed(pname + "_d_log_gamma_lc_I0_dT"):
+            raise NotImplementedError(
+                "Enthalpy calculations are not implemented for your choice of reference state."
+            )
+
+        R = ENRTL.gas_constant(b)
+        d_log_gamma_lc_I0_dT = getattr(b, pname + "_d_log_gamma_lc_I0_dT")
+        X = getattr(b, pname + "_X")
+        G = getattr(b, pname + "_G")
+        dG_dT = getattr(b, pname + "_dG_dT")
+        tau = getattr(b, pname + "_tau")
+        dtau_dT = getattr(b, pname + "_dtau_dT")
+
+        enth_mol_phase_excess_lc = -R * b.temperature**2 * (
+            reduced_symmetric_gibbs_phase_temperature_derivative(
+                b, X, G, dG_dT, tau, dtau_dT
+            )
+            - sum(
+                b.mole_frac_phase_comp_true[p, s]
+                * d_log_gamma_lc_I0_dT[s]
+                for s in b.components_in_phase(p, true_basis=True)
+            )
+        )
+
+        v = pyunits.convert(
+            getattr(b, pname + "_vol_mol_solvent"), pyunits.m**3 / pyunits.mol
+        )
+        dv_dT = differentiate(v, b.temperature, mode=Modes.reverse_symbolic)
+        eps = getattr(b, pname + "_relative_permittivity_solvent")
+        d_eps_dT = getattr(b, pname + "_d_relative_permittivity_solvent_dT")
+        A_DH = getattr(b, pname + "_A_DH")
+        Ix = getattr(b, pname + "_ionic_strength")
+
+        dA_dT = -A_DH / 2 * (dv_dT / v + 3 * d_eps_dT / eps)
+        enth_mol_phase_excess_DH = R * b.temperature**2 * (
+            4
+            * Ix
+            / ClosestApproach
+            * log(1 + ClosestApproach * Ix**0.5)
+            * dA_dT
+        )
+        enth_mol_phase_excess_born = getattr(
+            b, pname + "_enth_mol_excess_born"
+        )
+        return (
+            enth_mol_phase_excess_lc
+            + enth_mol_phase_excess_DH
+            + enth_mol_phase_excess_born
+        )
 
 
 # def initialize_inherent_reactions(indexed_blk):
@@ -1628,7 +1749,7 @@ def get_prop_dict(components=None):
         "phases": {
             "Liq": {
                 "type": AqueousPhase,
-                "equation_of_state": ENRTL,
+                "equation_of_state": ENRTLDirectTemperatureDerivative,
                 "equation_of_state_options": {
                     "property_basis": "true",
                     "tau_rule": AkulaTau,
