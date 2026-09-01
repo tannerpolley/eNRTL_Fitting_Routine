@@ -112,7 +112,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
         loading_min = []
         loading_max = []
         for file in os.listdir(dataset_dir):
-            df_data = pd.read_csv(dataset_dir + '/' + file)
+            df_data = pd.read_csv(os.path.join(dataset_dir, file))
             if 'VLE' in file and (
                     w_amine in df_data[amine_concentration].values and T in df_data[temperature].values):
                 df_data = df_data[(df_data[amine_concentration] == w_amine) &
@@ -214,7 +214,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
         #%% Plotting data
         for file in os.listdir(data_dir):
             name = file.split('_')[0]
-            df_data = pd.read_csv(data_dir + '/' + file)
+            df_data = pd.read_csv(os.path.join(data_dir, file))
 
             if name == 'Bottinger':
                 continue

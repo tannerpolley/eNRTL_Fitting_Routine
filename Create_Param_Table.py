@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def create_param_table(df, title='Table Title', folder=r'data\Parameters', plot=True):
+def create_param_table(df, title='Table Title', folder=os.path.join('data', 'Parameters'), plot=True):
 
     def insert_file(file_name):
-        return folder + r'\\' + file_name
+        return os.path.join(folder, file_name)
     df_table = df.drop(columns=['Object', 'Object_Name', ])
 
     df_1 = df_table[(df_table['Name'] != "$k_{car,4}$") & (df_table['Name'] != "$k_{bic,4}$")]
@@ -30,7 +30,7 @@ def create_param_table(df, title='Table Title', folder=r'data\Parameters', plot=
         df_table.loc[df_2.index, 'Uncertainty'] = df_2['Uncertainty'].map('{:.4f}'.format)
 
     for i, row in df_table.iterrows():
-        df_table.loc[i, 'Uncertainty'] = '$\pm$' + ' ' + row["Uncertainty"]
+        df_table.loc[i, 'Uncertainty'] = r'$\pm$' + ' ' + row["Uncertainty"]
 
     df_table.sort_values(by=['Name'], ascending=True, inplace=True)
     df_table['Percent'] = df_table['Percent'].map('{:.0%}'.format)
@@ -68,5 +68,5 @@ def create_param_table(df, title='Table Title', folder=r'data\Parameters', plot=
         plt.show()
 
 if __name__ == '__main__':
-    df_fit = pd.read_csv(r'data\Parameters\Parameters_fit.csv')
+    df_fit = pd.read_csv(os.path.join('data', 'Parameters', 'Parameters_fit.csv'))
     create_param_table(df_fit, 'Testing title')

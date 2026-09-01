@@ -37,7 +37,7 @@ def get_estimated_params(m, fit_param_dic):
         latex_mi = ''.join(latex_mi)
         return latex_mi
 
-    component_pairs = m.params.Liq.component_pair_set._ordered_values
+    component_pairs = list(m.params.Liq.component_pair_set)
     component_pairs_chosen = []
     dic = {}
 
@@ -110,7 +110,7 @@ def get_estimated_params(m, fit_param_dic):
                     param_dic['Uncertainty'].append(0.0)
                     param_dic['Percent'].append(0.0)
 
-    folder_path = 'data\Parameters'
+    folder_path = os.path.join('data', 'Parameters')
 
     # Check if the folder exists
     if not os.path.exists(folder_path):
@@ -118,7 +118,7 @@ def get_estimated_params(m, fit_param_dic):
         os.makedirs(folder_path)
 
     df_unfit = pd.DataFrame(param_dic)
-    df_unfit.to_csv(r'data\Parameters\Parameters_unfit.csv', index=False)
+    df_unfit.to_csv(os.path.join(folder_path, 'Parameters_unfit.csv'), index=False)
 
     return df_unfit
 

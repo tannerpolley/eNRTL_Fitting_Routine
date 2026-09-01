@@ -1,4 +1,5 @@
 from scipy.linalg import eigh
+import os
 import numpy as np
 import idaes.core.util.scaling as iscale
 import pyomo.environ as pyo
@@ -91,18 +92,18 @@ def uncertainty_analysis(m_scaled, df_unfit, estimated_vars, estimated_vars_scal
             #     print(str(i) + ": " + estimated_vars_scaled[i].name)
             print("Uncertainties cannot be calculated.")
             for i, var in enumerate(estimated_vars):
-                uncertainty[i] = np.NaN
+                uncertainty[i] = np.nan
                 # print(f"{var.name}: {var.value:.3e}")
     elif len(estimated_vars) > 0:
         print("Warning, active bounds at solution!")
         print("Uncertainties cannot be calculated.")
         for i, var in enumerate(estimated_vars):
-            uncertainty[i] = np.NaN
+            uncertainty[i] = np.nan
             # print(f"{var.name}: {var.value:.3e}")
-        W_value = np.NaN
+        W_value = np.nan
     else:
         print('Feasibility Problem')
-        W_value = np.NaN
+        W_value = np.nan
         # Feasibility problem
         pass
 
@@ -112,6 +113,6 @@ def uncertainty_analysis(m_scaled, df_unfit, estimated_vars, estimated_vars_scal
         df_fit.loc[i, 'Value'] = var.value
         df_fit.loc[i, 'Uncertainty'] = uncertainty[i]
         df_fit.loc[i, 'Percent'] = (abs(uncertainty[i] / var.value))
-    df_fit.to_csv(r'data\Parameters\Parameters_fit.csv', index=False)
+    df_fit.to_csv(os.path.join('data', 'Parameters', 'Parameters_fit.csv'), index=False)
 
     return df_fit, W_value

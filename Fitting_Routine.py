@@ -1,4 +1,5 @@
 import logging
+import os
 import pyomo.environ as pyo
 import numpy as np
 
@@ -115,10 +116,10 @@ if __name__ == "__main__":
     # %% Dataset Implementation
 
     obj_expr = 0
-    dataset_dir = r"data\data_sets_to_load"
+    dataset_dir = os.path.join('data', 'data_sets_to_load')
 
     obj_expr, dfs, param_block_names = load_datasets(m, obj_expr, dataset_dir, species_dic, get_mole_fraction, column_names,
-                                                     exclude_list=['Xu', 'Bottinger'])
+                                                     exclude_list=['Xu', 'Bottinger', 'kim'])
 
     # %% Model Initializing and Solving
 
@@ -154,7 +155,11 @@ if __name__ == "__main__":
 
     df_fit, W_value = uncertainty_analysis(m_scaled, df_unfit, var_objects, var_objects_scaled)
     if param_table:
-        create_param_table(df_fit, title=f"Obj: {pyo.value(m.obj): .4f} - H: {W_value: .4f}")
+        create_param_table(
+            df_fit,
+            title=f"Obj: {pyo.value(m.obj): .4f} - H: {W_value: .4f}",
+            plot=False,
+        )
     obj_value = pyo.value(m.obj)
 
     # %% Plotting
