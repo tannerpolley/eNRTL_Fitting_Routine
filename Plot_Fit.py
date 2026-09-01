@@ -390,7 +390,8 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
         os.remove(plot_file)
     fig_Ch_Eq.savefig(plot_file)
 
-    plt.show()
+    plt.close(fig_VLE)
+    plt.close(fig_Ch_Eq)
 
     for k, v in compare_data.items():
         print(k, len(v))

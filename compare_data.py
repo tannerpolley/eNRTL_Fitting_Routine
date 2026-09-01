@@ -1,12 +1,15 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 df1 = pd.read_csv('compare_data_with_out_eNRTL.csv')
 df2 = pd.read_csv('compare_data_with_eNRTL.csv')
 T_range = df2['temperature'].unique()
 mfc2 = ['tab:orange', 'tab:blue', 'tab:green', 'tab:red', 'tab:purple']
 columns = ['x_CO2', 'Henry_CO2', 'act_coeff_CO2', 'fug_CO2', 'Pressure', 'fug_H2O']
+plot_dir = os.path.join('data', 'Plots', 'comparison')
+os.makedirs(plot_dir, exist_ok=True)
 
 for c in columns:
     fig, axs = plt.subplots(figsize=(12, 10))
@@ -26,6 +29,8 @@ for c in columns:
         axs.set_ylabel(c)
         if c != 'act_coeff_CO2':
             axs.set_yscale('log')
+    fig.savefig(os.path.join(plot_dir, f'{c}.png'))
+    plt.close(fig)
 
 fig, axs = plt.subplots(figsize=(12, 10))
 for i, T in enumerate(T_range):
@@ -38,6 +43,8 @@ for i, T in enumerate(T_range):
     axs.set_xlabel("CO$_{2}$ Loading, mol CO$_{2}$/mol MEA")
     axs.set_ylabel("Pressure (kPa)")
     axs.set_yscale('log')
+fig.savefig(os.path.join(plot_dir, 'Henry_fugacity_without_eNRTL.png'))
+plt.close(fig)
 
 fig, axs = plt.subplots(figsize=(12, 10))
 for i, T in enumerate(T_range):
@@ -50,7 +57,8 @@ for i, T in enumerate(T_range):
     axs.set_xlabel("CO$_{2}$ Loading, mol CO$_{2}$/mol MEA")
     axs.set_ylabel("Pressure (kPa)")
     axs.set_yscale('log')
-plt.show()
+fig.savefig(os.path.join(plot_dir, 'Henry_fugacity_with_eNRTL.png'))
+plt.close(fig)
 
 fig, axs = plt.subplots(figsize=(12, 10))
 for i, T in enumerate(T_range):
@@ -65,4 +73,5 @@ for i, T in enumerate(T_range):
     axs.set_xlabel("CO$_{2}$ Loading, mol CO$_{2}$/mol MEA")
     axs.set_ylabel("Pressure (kPa)")
     axs.set_yscale('log')
-plt.show()
+fig.savefig(os.path.join(plot_dir, 'fugacity_H2O.png'))
+plt.close(fig)

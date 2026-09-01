@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def create_param_table(df, title='Table Title', folder=os.path.join('data', 'Parameters'), plot=True):
+def create_param_table(df, title='Table Title', folder=os.path.join('data', 'Parameters'), plot=False):
 
     def insert_file(file_name):
         return os.path.join(folder, file_name)
@@ -61,11 +61,12 @@ def create_param_table(df, title='Table Title', folder=os.path.join('data', 'Par
     img = np.asarray(Image.open(insert_file('Parameters.png')))
 
     if plot:
-        plt.figure(figsize=(20, 20))
-        plt.imshow(img)
-        plt.axis('off')
-        plt.tight_layout()
-        plt.show()
+        fig, ax = plt.subplots(figsize=(20, 20))
+        ax.imshow(img)
+        ax.axis('off')
+        fig.tight_layout()
+        fig.savefig(insert_file('Parameters.png'))
+        plt.close(fig)
 
 if __name__ == '__main__':
     df_fit = pd.read_csv(os.path.join('data', 'Parameters', 'Parameters_fit.csv'))
