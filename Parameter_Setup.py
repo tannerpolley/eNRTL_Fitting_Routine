@@ -6,7 +6,8 @@ import os
 
 
 def get_estimated_params(m, fit_param_dic):
-    param_dic = {'Description': [], 'Name': [], 'Value': [], 'Uncertainty': [], 'Percent': [], 'Object': [],
+    param_dic = {'Description': [], 'Name': [], 'Value': [], 'Curvature_Scale': [],
+                 'Relative_Curvature_Scale': [], 'Object': [],
                  'Object_Name': []}
 
     # Pull items that contain the search string
@@ -14,9 +15,7 @@ def get_estimated_params(m, fit_param_dic):
     rxns = [item for item in dir(m.params) if "reaction_" in item and "inherent" not in item and "get" not in item]
 
     obj = getattr(m.params, rxns[0])
-    rxn_coeffs_all = [attr for attr in dir(obj) if isinstance(getattr(obj, attr), pyomo.core.base.var.ScalarVar)]
-
-    rxn_coeffs = fit_param_dic['rxn_coeffs']
+    reaction_parameters = fit_param_dic['reaction_parameters']
     molecules = fit_param_dic['molecules']  # List of molecules that to be included in the interactions
     cations = fit_param_dic['cations']  # List of cation to include in the interactions
     anions = fit_param_dic['anions']  # List of anion to include in the interactions
@@ -84,16 +83,25 @@ def get_estimated_params(m, fit_param_dic):
     for rxn in rxns:
         rxn_obj = getattr(m.params, rxn)
         rxn_name = rxn_obj.name.split('_')[2][:3]
-        for rxn_coeff in rxn_coeffs_all:
-            if str(rxn_coeff[-1]) in rxn_coeffs:
-                obj = getattr(rxn_obj, rxn_coeff)
-                param_dic['Description'].append(f'{rxn_name} rxn coeff')
-                param_dic['Object'].append(obj)
-                param_dic['Object_Name'].append(obj.name)
-                param_dic['Value'].append(pyo.value(obj))
-                param_dic['Name'].append('$k_{' + f'{rxn_name},{rxn_coeff[-1]}' + '}$')
-                param_dic['Uncertainty'].append(0.0)
-                param_dic['Percent'].append(0.0)
+        labels = {
+            'log_k_ref': rf'$\ln K_{{{rxn_name},ref}}$',
+            'dh_rxn_ref': rf'$\Delta H_{{{rxn_name},ref}}$',
+            'dcp_rxn': rf'$\Delta C_{{p,{rxn_name}}}$',
+        }
+        descriptions = {
+            'log_k_ref': f'{rxn_name} log K at 353.15 K',
+            'dh_rxn_ref': f'{rxn_name} reaction enthalpy',
+            'dcp_rxn': f'{rxn_name} reaction heat capacity',
+        }
+        for parameter in reaction_parameters:
+            obj = getattr(rxn_obj, parameter)
+            param_dic['Description'].append(descriptions[parameter])
+            param_dic['Object'].append(obj)
+            param_dic['Object_Name'].append(obj.name)
+            param_dic['Value'].append(pyo.value(obj))
+            param_dic['Name'].append(labels[parameter].replace(chr(92) * 2, chr(92)))
+            param_dic['Curvature_Scale'].append(0.0)
+            param_dic['Relative_Curvature_Scale'].append(0.0)
 
     if len(interactions) > 0:
         for pair in component_pairs:
@@ -107,8 +115,8 @@ def get_estimated_params(m, fit_param_dic):
                     param_dic['Object_Name'].append(obj.name)
                     param_dic['Value'].append(pyo.value(obj))
                     param_dic['Name'].append('$' + letter + dic[pair][0])
-                    param_dic['Uncertainty'].append(0.0)
-                    param_dic['Percent'].append(0.0)
+                    param_dic['Curvature_Scale'].append(0.0)
+                    param_dic['Relative_Curvature_Scale'].append(0.0)
 
     folder_path = os.path.join('data', 'Parameters')
 
@@ -200,3 +208,6 @@ def setup_param_scaling(m):
         iscale.set_scaling_factor(rxn_obj.k_eq_coeff_2, 1 / 300)
         iscale.set_scaling_factor(rxn_obj.k_eq_coeff_3, 1)
         iscale.set_scaling_factor(rxn_obj.k_eq_coeff_4, 300)
+        iscale.set_scaling_factor(rxn_obj.log_k_ref, 1)
+        iscale.set_scaling_factor(rxn_obj.dh_rxn_ref, 1 / 30000)
+        iscale.set_scaling_factor(rxn_obj.dcp_rxn, 1 / 1500)

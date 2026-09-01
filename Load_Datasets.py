@@ -4,9 +4,23 @@ import os
 import pandas as pd
 from idaes.models.properties.modular_properties.pure import NIST
 
+HEAT_OBJECTIVE_WEIGHT = 0.002
+
 
 def loss(x):
     return 0.5 * x ** 2
+
+
+def heat_of_absorption_expression(m, blk_old, blk):
+    h_co2_ig = NIST.enth_mol_ig_comp.return_expression(
+        blk, m.params.CO2, blk.temperature
+    )
+    absorbed_co2 = blk.flow_mol_comp["CO2"] - blk_old.flow_mol_comp["CO2"]
+    return -(
+        blk.enth_mol_phase["Liq"] * blk.flow_mol
+        - blk_old.enth_mol_phase["Liq"] * blk_old.flow_mol
+        - h_co2_ig * absorbed_co2
+    ) / absorbed_co2
 
 
 def add_VLE_dataset(params, df, column_names, species_dic, get_mole_fraction, obj_expr, has_total_pressure=True):
@@ -32,32 +46,29 @@ def add_VLE_dataset(params, df, column_names, species_dic, get_mole_fraction, ob
 
 
 def add_ABS_dataset(m, params, df, column_names, species_dic, get_mole_fraction, obj_expr):
-    unique_temperatures = df[column_names['temperature']].unique()
-    dfs = [df[df[column_names['temperature']] == t] for t in unique_temperatures]
-
     idx_start = 0
-    for count, df in enumerate(dfs):
-
-        T = df[column_names['temperature']].unique()[0] + 273.15
+    group_columns = [column_names['temperature'], 'experiment']
+    for _, experiment in df.groupby(group_columns, sort=False):
+        T = experiment.iloc[0][column_names['temperature']] + 273.15
 
         # Start out with a completely unloaded mixture
         blk = params[idx_start]
-        amine_concentration = df.iloc[0][column_names['amine_concentration']]
+        amine_concentration = experiment.iloc[0][column_names['amine_concentration']]
         x_dic = get_mole_fraction(.003, amine_concentration)
         blk.flow_mol.fix(x_dic['n_T'])
         components = species_dic['components']
         for c in components:
             blk.mole_frac_comp[c].fix(x_dic[c])
         # Not a lot of information about pressure
-        if 'pressure' in list(df.columns):
-            blk.pressure.fix(df.iloc[0][column_names['pressure']])
+        if 'pressure' in list(experiment.columns):
+            blk.pressure.fix(experiment.iloc[0][column_names['pressure']])
         else:
             blk.pressure.fix(101325)
         blk.temperature.fix(T)
 
-        for i, row in df.iterrows():
+        for offset, (_, row) in enumerate(experiment.iterrows(), start=1):
             blk_old = blk
-            blk = params[count + i + 1]
+            blk = params[idx_start + offset]
             loading = row[column_names['loading']]
             amine_concentration = row[column_names['amine_concentration']]
             x_dic = get_mole_fraction(loading, amine_concentration)
@@ -70,23 +81,13 @@ def add_ABS_dataset(m, params, df, column_names, species_dic, get_mole_fraction,
             else:
                 blk.pressure.fix(101325)
             blk.temperature.fix(T)
-            CO2_obj = m.params.CO2
-            Hl_f = blk.enth_mol_phase["Liq"]
-            F_f = blk.flow_mol
-            Hl_i = blk_old.enth_mol_phase["Liq"]
-            F_i = blk_old.flow_mol
-            H_ig = NIST.enth_mol_ig_comp.return_expression(blk, CO2_obj, blk.temperature)
+            dH_abs_expr = heat_of_absorption_expression(m, blk_old, blk)
+            residual = dH_abs_expr * 1e-3 - row[column_names['heat_of_absorption']]
+            # Reduced-model compromise; Akula et al. (2023), eq. 34 uses 0.2
+            # with additional standard-state and ion-pair parameters.
+            obj_expr += HEAT_OBJECTIVE_WEIGHT * loss(residual)
 
-            Ff_CO2 = blk.flow_mol_comp["CO2"]
-            Fi_CO2 = blk_old.flow_mol_comp["CO2"]
-            dH_abs_expr = -(Hl_f * F_f - Hl_i * F_i - H_ig * (Ff_CO2 - Fi_CO2)) / (Ff_CO2 - Fi_CO2)
-
-            # if (row['CO2_loading'] <= 0.4) and (row[column_names['heat_of_absorption']] <= 130):  # threshold bc of missing vapor phase enthalpy
-            #     residual_scale = 50
-            #     residual = (dH_abs_expr*1e-3 - row[column_names['heat_of_absorption']])/residual_scale
-            #     obj_expr += loss(residual)
-
-        idx_start += len(df[column_names['loading']]) + 1
+        idx_start += len(experiment) + 1
     return obj_expr
 
 
@@ -139,7 +140,9 @@ def load_datasets(m, obj_expr, dataset_dir, species_dic, get_mole_fraction, colu
         param_block_names.append(param_block_name)
 
         if dataset_type == 'dHabs':
-            setattr(m, param_block_name, m.params.build_state_block(range(len(df) + len(df[column_names['temperature']].unique())),
+            fit_df = df[df['fit'].astype(bool)]
+            n_experiments = fit_df.groupby([column_names['temperature'], 'experiment']).ngroups
+            setattr(m, param_block_name, m.params.build_state_block(range(len(fit_df) + n_experiments),
                                                                     defined_state=True))
         else:
             setattr(m, param_block_name, m.params.build_state_block(range(len(df)), defined_state=True))
@@ -151,7 +154,9 @@ def load_datasets(m, obj_expr, dataset_dir, species_dic, get_mole_fraction, colu
             else:
                 obj_expr = add_VLE_dataset(param_block, df, column_names, species_dic, get_mole_fraction, obj_expr, has_total_pressure=False)
         elif dataset_type == 'dHabs':
-            obj_expr = add_ABS_dataset(m, param_block, df, column_names, species_dic, get_mole_fraction, obj_expr)
+            obj_expr = add_ABS_dataset(
+                m, param_block, fit_df, column_names, species_dic, get_mole_fraction, obj_expr
+            )
         elif dataset_type == 'ChEq':
             obj_expr = add_ChEq_dataset(param_block, df, column_names, species_dic, get_mole_fraction, obj_expr, skip_CO2_speciation)
 

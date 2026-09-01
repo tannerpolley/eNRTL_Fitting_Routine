@@ -1,6 +1,7 @@
 from scipy.linalg import eigh
 import os
 import numpy as np
+import pandas as pd
 import idaes.core.util.scaling as iscale
 import pyomo.environ as pyo
 from scipy.sparse.linalg import spsolve
@@ -63,14 +64,15 @@ def uncertainty_analysis(m_scaled, df_unfit, estimated_vars, estimated_vars_scal
     active_lbs = {}
     active_ubs = {}
     uncertainty = np.zeros(len(estimated_vars))
+    estimated_names = {var.name for var in estimated_vars_scaled}
     for var, val in m_scaled.ipopt_zL_out.items():
-        if val > .2:
+        if var.name in estimated_names and val > .2:
             print(var.name, val)
             active_lbs[var.name] = val
             # print('Variables with active lower bounds:')
             # print(var.name, val)
     for var, val in m_scaled.ipopt_zU_out.items():
-        if val < -.2:
+        if var.name in estimated_names and val < -.2:
             print(var.name, val)
             active_ubs[var.name] = val
             # print('Variables with active upper bounds:')
@@ -86,6 +88,14 @@ def uncertainty_analysis(m_scaled, df_unfit, estimated_vars, estimated_vars_scal
                 f"{W[0]:.6e} to {W[-1]:.6e}; condition: {W[-1] / W[0]:.6e}"
             )
             inv_red_hess = V @ np.diag(1 / W) @ V.T
+            std_scaled = np.sqrt(np.diag(inv_red_hess))
+            correlation = inv_red_hess / np.outer(std_scaled, std_scaled)
+            labels = [var.name for var in estimated_vars]
+            pd.DataFrame(correlation, index=labels, columns=labels).to_csv(
+                os.path.join('data', 'Parameters', 'Parameter_Correlation.csv')
+            )
+            max_correlation = np.max(np.abs(correlation - np.eye(len(correlation))))
+            print(f"Maximum absolute parameter correlation: {max_correlation:.6f}")
             for i, var in enumerate(estimated_vars):
                 uncertainty[i] = pyo.sqrt(inv_red_hess[i][i]) / iscale.get_scaling_factor(var, default=1)
         else:
@@ -115,8 +125,8 @@ def uncertainty_analysis(m_scaled, df_unfit, estimated_vars, estimated_vars_scal
         # parameters['Description'].append(var.name)
         # parameters['Name'].append(var.name)
         df_fit.loc[i, 'Value'] = var.value
-        df_fit.loc[i, 'Uncertainty'] = uncertainty[i]
-        df_fit.loc[i, 'Percent'] = (abs(uncertainty[i] / var.value))
+        df_fit.loc[i, 'Curvature_Scale'] = uncertainty[i]
+        df_fit.loc[i, 'Relative_Curvature_Scale'] = abs(uncertainty[i] / var.value)
     df_fit.to_csv(os.path.join('data', 'Parameters', 'Parameters_fit.csv'), index=False)
 
     return df_fit, W_value

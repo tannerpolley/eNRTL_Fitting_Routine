@@ -35,7 +35,7 @@ from copy import deepcopy
 from functools import partial
 
 # Import Pyomo units
-from pyomo.environ import Constraint, exp, Expression, log, Reals, units as pyunits, value, Var
+from pyomo.environ import Constraint, exp, Expression, log, Param, Reals, units as pyunits, value, Var
 import pyomo.environ as pyo
 from pyomo.core.expr.calculus.derivatives import Modes, differentiate
 from pyomo.util.check_units import assert_units_equivalent
@@ -1029,17 +1029,55 @@ class KeqCullinaneRochelle:
         )
         set_param_from_config(rblock, param="k_eq_coeff", index="4", config=config)
 
+        if abs(value(rblock.k_eq_coeff_4 * pyunits.K)) > 1e-12:
+            raise ConfigurationError(
+                "The reference-state reaction parameterization requires k_eq_coeff_4 = 0."
+            )
+
+        temperature_ref = 353.15
+        gas_constant = value(
+            pyunits.convert(Constants.gas_constant, pyunits.J / pyunits.mol / pyunits.K)
+        )
+        k1 = value(rblock.k_eq_coeff_1)
+        k2 = value(rblock.k_eq_coeff_2 / pyunits.K)
+        k3 = value(rblock.k_eq_coeff_3)
+        rblock.temperature_ref = Param(
+            initialize=temperature_ref,
+            units=pyunits.K,
+            doc="Reference temperature for reaction parameters",
+        )
+        rblock.log_k_ref = Var(
+            initialize=k1 + k2 / temperature_ref + k3 * pyo.log(temperature_ref),
+            units=pyunits.dimensionless,
+            doc="Natural logarithm of the equilibrium constant at the reference temperature",
+        )
+        rblock.dh_rxn_ref = Var(
+            initialize=gas_constant * (-k2 + k3 * temperature_ref),
+            units=pyunits.J / pyunits.mol,
+            doc="Reaction enthalpy at the reference temperature",
+        )
+        rblock.dcp_rxn = Var(
+            initialize=gas_constant * k3,
+            units=pyunits.J / pyunits.mol / pyunits.K,
+            doc="Constant reaction heat-capacity change",
+        )
+        rblock.log_k_ref.fix()
+        rblock.dh_rxn_ref.fix()
+        rblock.dcp_rxn.fix()
+
     @staticmethod
     def return_expression(b, rblock, r_idx, T):
         return exp(b.log_k_eq[r_idx])
 
     @staticmethod
     def return_log_expression(b, rblock, r_idx, T):
+        T_ref = rblock.temperature_ref
         return b.log_k_eq[r_idx] == (
-                rblock.k_eq_coeff_1
-                + rblock.k_eq_coeff_2 / T
-                + rblock.k_eq_coeff_3 * log(T / pyunits.K)
-                + rblock.k_eq_coeff_4 * T
+                rblock.log_k_ref
+                + rblock.dh_rxn_ref / (Constants.gas_constant * T_ref)
+                * (1 - T_ref / T)
+                + rblock.dcp_rxn / Constants.gas_constant
+                * (log(T / T_ref) + T_ref / T - 1)
         )
 
     @staticmethod
@@ -1054,11 +1092,7 @@ class enthRxnCullinaneRochelle:
 
     @staticmethod
     def return_expression(b, rblock, r_idx, T):
-        return Constants.gas_constant * (
-                -rblock.k_eq_coeff_2
-                + rblock.k_eq_coeff_3 * T
-                + rblock.k_eq_coeff_4 * T ** 2
-        )
+        return rblock.dh_rxn_ref + rblock.dcp_rxn * (T - rblock.temperature_ref)
 
     @staticmethod
     def calculate_scaling_factors(b, rblock):

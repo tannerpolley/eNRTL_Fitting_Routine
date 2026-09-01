@@ -21,19 +21,26 @@ def create_param_table(df, title='Table Title', folder=os.path.join('data', 'Par
         df_2 = df_table[(df_table['Name'].isin(reaction_4))]
 
     df_table['Value'] = df_table['Value'].astype('str')
-    df_table['Uncertainty'] = df_table['Uncertainty'].astype('str')
+    df_table['Curvature_Scale'] = df_table['Curvature_Scale'].astype('str')
     df_table.loc[df_1.index, 'Value'] = df_1['Value'].map('{:.1f}'.format)
-    df_table.loc[df_1.index, 'Uncertainty'] = df_1['Uncertainty'].map('{:.1f}'.format)
+    df_table.loc[df_1.index, 'Curvature_Scale'] = df_1['Curvature_Scale'].map('{:.1f}'.format)
 
     if len(reaction_4) > 0:
         df_table.loc[df_2.index, 'Value'] = df_2['Value'].map('{:.4f}'.format)
-        df_table.loc[df_2.index, 'Uncertainty'] = df_2['Uncertainty'].map('{:.4f}'.format)
+        df_table.loc[df_2.index, 'Curvature_Scale'] = df_2['Curvature_Scale'].map('{:.4f}'.format)
 
     for i, row in df_table.iterrows():
-        df_table.loc[i, 'Uncertainty'] = r'$\pm$' + ' ' + row["Uncertainty"]
+        df_table.loc[i, 'Curvature_Scale'] = r'$\pm$' + ' ' + row["Curvature_Scale"]
 
     df_table.sort_values(by=['Name'], ascending=True, inplace=True)
-    df_table['Percent'] = df_table['Percent'].map('{:.0%}'.format)
+    df_table['Relative_Curvature_Scale'] = df_table['Relative_Curvature_Scale'].map('{:.0%}'.format)
+    df_table.rename(
+        columns={
+            'Curvature_Scale': 'Curvature scale',
+            'Relative_Curvature_Scale': 'Relative curvature scale',
+        },
+        inplace=True,
+    )
 
     df_table.to_csv(insert_file('Parameters_table.csv'), index=False)
 

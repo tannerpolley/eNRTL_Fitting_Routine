@@ -1,169 +1,117 @@
-# eNRTL fitting routine: formulation and absorber-readiness analysis
+# eNRTL joint-regression and absorber-readiness analysis
 
 Date: 2026-09-01  
-Branch: `codex/enrtl-enthalpy-validation`
-Analysis base: `codex/absorber-readiness-analysis` at `c9e61fa`
+Branch: `codex/enrtl-joint-caloric-regression`
 
-## Executive assessment
+## Result
 
-**verified:** The reduced two-reaction chemistry, true-species activity equilibrium form, and aqueous-infinite-dilution reference state agree with the Akula MEA-H2O-CO2 formulation. The model equations are suitable for equilibrium/speciation calculations over the fitted domain.
+**verified:** Replacing the correlated `[1, 1/T, ln(T)]` coefficient basis with the exact physical coordinates `ln(K_ref)`, `Delta H_ref`, and constant `Delta Cp` at `T_ref = 353.15 K` reduces the fitted reduced-Hessian condition number from `5.03e5` to `32.96`. The new Hessian eigenvalues span `36.36` to `1198.64`; the numerical Hessian defect is resolved.
 
-**verified:** The previous four-term equilibrium-constant basis was overparameterized over 313.15-393.15 K. Fixing the unsupported linear-in-temperature term at zero removes two weak coefficient directions while changing the objective by only 0.45% (61.1533 to 61.4272). The new pressure-fit MAPE is 27.51%, compared with about 31.7% from the previous saved result.
+**verified:** The accepted six-parameter joint fit uses the 240 VLE points, 172 speciation residuals, and 66 Kim-Svendsen calorimetry points at 40 and 80 C. The 20 points at 120 C are retained only as a temperature holdout. The fit weight on each squared heat residual is `0.002`, selected by a bounded objective tradeoff rather than copied from a larger published parameterization.
 
-**verified:** The eNRTL local-interaction model is incomplete in the default fit. It contains the H2O-MEA molecular parameters, but all molecule-electrolyte terms are held at zero. A bounded test that restored the published fixed interaction values increased the present objective to 1333.36, even after refitting the reaction coefficients. Those terms cannot be switched on independently of the standard-state and calorimetric regression used to obtain them.
+**verified:** The joint fit improves experimental-pressure MAPE from `39.28%` to `37.95%` and heat MAE from `9.59` to `7.26 kJ/mol CO2` relative to the equilibrium-only fit. The equilibrium objective rises only `3.3%`, from `59.66` to `61.66`.
 
-**conclusion:** Use the six fitted reaction coefficients as provisional equilibrium initializers. Do not interpret their inverse-Hessian scales as process-design uncertainty, and do not promote the isolated eNRTL interaction fit. The repaired enthalpy path now constructs and is dimensionally consistent, but its heat-of-absorption predictions are not yet accurate enough for calorimetric regression or a trusted non-isothermal absorber.
+**verified:** The untouched 120 C data fail: MAE is `27.96 kJ/mol CO2`, RMSE is `31.83 kJ/mol CO2`, and bias is `-20.05 kJ/mol CO2`. The present constant-Delta-Cp, reaction-only parameterization should not be used for non-isothermal absorber or stripper energy predictions near 120 C.
 
-## Reproducibility boundary
+**conclusion:** The physical coordinate change fixes the ill-conditioned Hessian without adding parameters. It does not make the available data statistically sufficient. Reaction heat capacities remain weak, and the high-temperature holdout shows model-form or missing-data error larger than the fitted-data residuals.
 
-**verified:** The repository `.venv` contains IDAES 2.7.0.dev0 from the expected fork:
+## Thermodynamic formulation
+
+The reaction equilibrium constants now use
 
 ```text
-https://github.com/dallan-keylogic/idaes-pse.git
-requested revision: eNRTL
-commit: 3cdf9b5299b8453fc29274f55d060c1b30a8294b
+ln K(T) = ln K_ref
+        + Delta H_ref/(R*T_ref)*(1 - T_ref/T)
+        + Delta Cp/R*(ln(T/T_ref) + T_ref/T - 1)
+
+Delta H(T) = Delta H_ref + Delta Cp*(T - T_ref)
 ```
 
-Run with:
+**verified:** This is an exact coordinate transformation of the former constant, inverse-temperature, and logarithmic-temperature expression. Across 313.15-393.15 K, the transformed and former equations agree to `1.6e-14` in `ln K` when initialized from the same coefficients.
 
-```bash
-env MPLBACKEND=Agg PYTHONDONTWRITEBYTECODE=1 .venv/bin/python Fitting_Routine.py
-```
+**verified:** Over the fitted temperatures, the normalized condition number of the former basis is `5812.5`; the normalized physical basis condition number is `2.84`. The effect-scaled physical basis condition number is `4.16`.
 
-The complete validated run on this branch took 134.19 s wall time, 131.16 s user CPU time, and 2.58 s system CPU time, with maximum resident memory of 1.46 GB.
+**reference-backed:** The constant-Delta-Cp form follows the standard Gibbs/enthalpy/heat-capacity relation used for the reaction standard states in the modified eNRTL formulation. It gives each fitted coordinate a direct thermodynamic interpretation.
 
-## Equation-by-equation review
-
-### Activity basis and reference states
-
-**reference-backed:** Akula et al. define pure-liquid standard states for solvents, infinite-dilution mixed-solvent states for molecular-solute phase equilibrium, and aqueous-infinite-dilution states for chemical equilibrium. The local configuration uses `property_basis="true"`, `ConcentrationForm.activity`, `InfiniteDilutionSingleSolvent`, and H2O as reference component. This is consistent with Akula et al. (2023), p. 3, eqs. 1-3, and Zhang et al. (2011), p. 68, eq. 6.
-
-**verified:** `log_power_law_equil` uses dimensionless true-species activities and `return_log_expression`; therefore the active equilibrium constraints are dimensionally consistent. The unused non-log `return_expression` previously multiplied `exp(logK)` by m3/mol. That dormant inconsistency has been removed so both interfaces now return a dimensionless activity-basis constant.
-
-### Reduced reaction chemistry
-
-**reference-backed:** The implemented reactions are exactly the reduced industrial chemistry in the Akula supporting appendix, p. 18, eqs. D14-D15:
+**verified:** The local activity-equilibrium constraints remain dimensionless and use true-species activities with the aqueous-infinite-dilution reference state. The two reduced reactions conserve charge, MEA, CO2, and water:
 
 ```text
 2 MEA + CO2 <-> MEAH+ + MEACOO-
 MEA + CO2 + H2O <-> MEAH+ + HCO3-
 ```
 
-The appendix states that H3O+, OH-, and CO3-- may be neglected at industrially important conditions. Charge, MEA, CO2, and water balances in the code agree with appendix eqs. D18-D21.
+**inference:** This reduced chemistry is appropriate over the fitted absorber-loading range. It is not established for every very-low-loading or hot stripper state.
 
-**inference:** This reduction is appropriate for the present fitted loading and temperature range. It should not be assumed valid for every stripper or very-low-loading state without a full-chemistry comparison.
+## Calorimetry data correction
 
-### Equilibrium-constant temperature dependence
+**verified:** The previous local Kim-Svendsen CSV merged two independent experimental runs at each temperature and globally sorted them. Near-equal loadings from different runs were then treated as consecutive doses, creating artificial increments such as `0.124` to `0.12401`.
 
-The retained correlation is:
+**verified:** The corrected CSV transcribes the six source series separately: 19 and 18 points at 40 C, 15 and 14 at 80 C, and 10 and 10 at 120 C, for 86 points total. Heat differences are now formed only within an experimental run and begin from loading `0.003`.
 
-```text
-log(K) = k1 + k2/T + k3*log(T/K)
-```
+**reference-backed:** Kim and Svendsen report semi-differential heats integrated over individual CO2 doses, generally spanning about `0.03-0.07 mol CO2/mol amine`, and report an experimental uncertainty of `+/-2.2%`.
 
-**reference-backed:** Akula derives reaction constants from standard-state Gibbs energies (appendix eq. D22), while the fitted standard-state heat-capacity representation supplies constant heat-capacity terms. That thermodynamic form supports constant, inverse-temperature, and logarithmic-temperature terms. The previous extra `k4*T` term was initialized at zero and was not supported by an additional heat-capacity temperature coefficient in this fit.
+**reference-backed:** Akula et al. fit the 66 Kim-Svendsen points at 40 and 80 C and exclude the 120 C series because prior literature identified thermodynamic inconsistency at and above 373 K. Their objective heat weight of `0.2` belongs to a larger ten-parameter standard-state and ion-pair regression, not this six-parameter reaction-only fit.
 
-**verified:** For the five fitted temperatures, the normalized four-term basis `[1, 1/T, log(T), T]` has condition number `3.208e5`; the three-term basis has condition number `5.813e3`. In the old fit, `k2-k4` correlations were 0.93-0.94 and `k3-k4` correlations were -0.82 to -0.83.
+## Weight selection
 
-**verified:** Removing `k4` changed the objective from 61.1533 to 61.4272 while reducing the largest relative coefficient scale from 234% to 67%. This is a reduction in unnecessary parameter freedom, not proof that the remaining coefficients are statistically identified.
+| Heat weight | Pressure MAPE | Heat MAE (fit) | Hessian condition | Decision |
+|---:|---:|---:|---:|---|
+| `0` | `39.28%` | `9.59 kJ/mol` | `36.61` | equilibrium-only baseline |
+| `0.002` | `37.95%` | `7.26 kJ/mol` | `32.96` | accepted |
+| `0.01` | `45.85%` | `5.68 kJ/mol` | `67.13` | pressure degradation |
+| `0.2` | `137.13%` | `3.67 kJ/mol` | `2138.62` | incompatible with reduced parameter set |
 
-### eNRTL local interactions
+**verified:** At weight `0.002`, the heat MAE is `4.75 kJ/mol` at 40 C and `10.46 kJ/mol` at 80 C. The 80 C bias is `-10.17 kJ/mol`, showing that the accepted compromise still has a systematic temperature trend.
 
-**reference-backed:** The modified symmetric eNRTL formulation contains molecule-molecule, molecule-electrolyte, and electrolyte-electrolyte interactions with `tau = A + B/T`; see Akula et al. (2023), p. 4, Table 1. The local `AkulaTau` rule implements this equation correctly.
+**inference:** Increasing the heat weight cannot repair that trend with the current parameter set; it rotates the regression away from the VLE data and drives the reaction heat capacities to compensate.
 
-**verified:** The default property data provide only H2O-MEA nonzero `tau` terms. Published H2O-(MEAH+, MEACOO-) and H2O-(MEAH+, HCO3-) terms, and their reverse terms, remain commented out. Unspecified interactions default to zero.
+## Parameters and curvature
 
-**reference-backed:** Akula did not estimate these interaction terms in isolation. The paper simultaneously regressed ion standard-state formation properties, heat-capacity terms, and water-ion-pair interactions against VLE and heat-of-absorption data (pp. 8-11, eq. 34 and Tables 3, 6, and 7). Zhang et al. similarly used binary VLE/excess enthalpy/heat capacity first, then ternary VLE, heat of absorption, heat capacity, and NMR data (2011, pp. 68 and 71-73, Tables 8-10).
-
-**verified:** Adding 12 free eNRTL interaction variables to the old eight reaction variables produced a non-positive-definite reduced Hessian. Restoring the published fixed interactions with only the new six reaction variables produced objective 1333.36. These failures show that the present reaction-only, VLE-plus-speciation objective is not interchangeable with the published joint standard-state regression.
-
-### Enthalpy consistency
-
-**verified:** `enthRxnCullinaneRochelle` is the correct van't Hoff derivative of the implemented log(K):
-
-```text
-delta_h_rxn = R*(-k2 + k3*T + k4*T^2)
-```
-
-With `k4=0`, this becomes `R*(-k2 + k3*T)`.
-
-**verified:** The installed fork evaluates symbolic Pyomo derivatives in Python Boolean conditions at `idaes/.../eos/enrtl.py:1356`. The local `ENRTLDirectTemperatureDerivative` retains the same Akula excess-enthalpy equation while evaluating both temperature-derivative terms algebraically, so liquid enthalpy now constructs without modifying the shared IDAES checkout.
-
-**verified:** The installed apparent-basis enthalpy expression also divides an ideal molar-enthalpy sum by molar flow together with the reaction enthalpy-flow term. The local implementation divides only the reaction enthalpy flow. The repaired expression passes Pyomo's unit-consistency check and is invariant to changing total flow from 1 to 100 mol/s within `7.5e-9 J/mol` at 313.15 K, 30 wt% MEA, and loading 0.30.
-
-**reference-backed:** The Akula appendix defines excess enthalpy as `-R*T^2*d(G_ex/RT)/dT` and includes both solvent-molar-volume and relative-permittivity derivatives in the long-range contribution (eqs. C1-C12). The direct local derivative follows those terms; the closest-approach parameter remains temperature-independent, matching the installed formulation.
-
-**verified:** At loading 0.30 and 30 wt% MEA, initialized liquid enthalpies are finite: `-260.065`, `-256.749`, and `-253.299 kJ/mol` at 313.15, 353.15, and 393.15 K. Liquid heat capacity remains unimplemented in the IDAES eNRTL class, so this check establishes enthalpy construction and trend, not a complete caloric-property validation.
-
-**verified:** Using the corrected constant-pressure enthalpy difference against all 86 Kim heat-of-absorption points gives MAE `30.36 kJ/mol` and bias `-29.67 kJ/mol`. The previously intended filter (`loading <= 0.4`, observed heat `<= 130 kJ/mol`) retains 47 points and gives MAE `30.66 kJ/mol` and bias `-30.66 kJ/mol`; temperature-specific MAEs are `23.50`, `27.88`, and `43.98 kJ/mol` at 40, 80, and 120 C. The current parameters therefore show a strong temperature-dependent calorimetric deficiency.
-
-**verified:** The Kim table contains successive loading increments as small as `1e-5 mol CO2/mol MEA`. Consecutive-state finite differences at those pairs are sensitive to numerical and data precision. The heat residual remains disabled pending a differential-enthalpy calculation or a documented rule for consolidating near-duplicate loading points.
-
-## Objective and data limitations
-
-**verified:** The previous eight-parameter objective contained 240 VLE log-fugacity residuals and 172 speciation residuals. VLE contributed 26.9414, speciation 33.7983, and regularization 0.4137 to total 61.1533.
-
-**verified:** Speciation residuals are multiplied by 10,000, VLE residuals are unweighted log-pressure errors, and no measurement covariance is supplied. The inverse reduced Hessian is therefore a local objective-curvature measure, not a calibrated parameter covariance matrix.
-
-**verified:** `Xu`, `Bottinger`, and `kim` are excluded from fitting. Some excluded VLE data remain visible in the figures. Heat-of-absorption residual construction is present but remains disabled because the repaired model does not yet reproduce the calorimetry and the consecutive-difference treatment is sensitive to near-duplicate loadings.
-
-**inference:** The arbitrary balance between VLE and speciation can shift fitted parameters and makes ordinary standard-error interpretation invalid. Source-level uncertainty weights or a documented sensitivity analysis are needed before formal uncertainty claims.
-
-## Current fit and Hessian
-
-| Reaction | Term | Value | Local curvature scale | Relative |
+| Reaction | Coordinate | Value | Local curvature scale | Relative scale |
 |---|---|---:|---:|---:|
-| bicarbonate | k1 | 176.093 | 9.738 | 5.5% |
-| bicarbonate | k2 | -2452.202 | 574.574 | 23.4% |
-| bicarbonate | k3 | -27.901 | 1.442 | 5.2% |
-| carbamate | k1 | 234.545 | 9.745 | 4.2% |
-| carbamate | k2 | -865.310 | 581.988 | 67.3% |
-| carbamate | k3 | -37.567 | 1.442 | 3.8% |
+| bicarbonate | `ln K_ref` | `5.2222` | `0.1379` | `2.64%` |
+| bicarbonate | `Delta H_ref` | `-67.536 kJ/mol` | `3.774 kJ/mol` | `5.59%` |
+| bicarbonate | `Delta Cp` | `-167.82 J/mol/K` | `116.97 J/mol/K` | `69.7%` |
+| carbamate | `ln K_ref` | `11.6819` | `0.1119` | `0.96%` |
+| carbamate | `Delta H_ref` | `-102.786 kJ/mol` | `3.159 kJ/mol` | `3.07%` |
+| carbamate | `Delta Cp` | `-241.98 J/mol/K` | `120.96 J/mol/K` | `50.0%` |
 
-**verified:** The new reduced-Hessian eigenvalues span `1.004353e-2` to `5.056428e3`, with condition number `5.034511e5`. The old condition number was `5.205e5`, so the absolute condition improves only 3.3%.
+**verified:** The largest absolute Hessian-derived correlation is `0.759` between bicarbonate `Delta H_ref` and `Delta Cp`; the corresponding carbamate correlation is `0.646`.
 
-**verified:** The smallest eigenvalue remains at the 0.01 regularization floor. The apparent finite scales for the weakest directions are penalty-influenced. Removing `k4` reduces coefficient ambiguity, but the current data do not create a strongly conditioned statistical estimation problem.
+**verified:** The output columns are now named `Curvature_Scale` and `Relative_Curvature_Scale`. They are not called uncertainty because the VLE, speciation, and calorimetry residuals do not have a common calibrated measurement covariance, and the objective contains regularization.
 
-**recommendation:** Propagate uncertainty in predicted `log(K)`, species fractions, or equilibrium pressure at column states, not independent raw-coefficient intervals. Use source/temperature holdouts, profile likelihood, source-cluster bootstrap, or a Bayesian fit only after defensible residual uncertainty models are supplied.
+**unknown:** Frequentist confidence intervals or a posterior parameter covariance cannot be justified from the current objective. A source-level error model and additional independent calorimetry are required before making those claims.
 
-## Fit accuracy and continuation validation
+## eNRTL interactions and absorber use
 
-**verified:** The saved prediction grid contains 150 finite states: five temperatures by 30 loadings. The current VLE pressure MAPE values are 39.65%, 34.78%, 17.35%, 26.22%, and 19.53% at 40, 60, 80, 100, and 120 C, respectively; mean MAPE is 27.51%.
+**reference-backed:** Akula et al. simultaneously regress ion standard-state formation properties, heat-capacity terms, and selected water-ion-pair interactions. Their reported parameter table contains severe correlations and very large variances for some heat-capacity and reverse-interaction terms.
 
-**verified:** At 40 C and 30 wt% MEA, the speciation curves retain the same qualitative agreement with Jakobsen NMR data as the old fit. The 20 C speciation data are outside the saved five-temperature grid.
+**verified:** Earlier attempts to add 12 local-interaction variables to the available objective produced a non-positive-definite reduced Hessian. Applying the published fixed interactions without the accompanying standard-state regression produced a much worse objective (`1333.36`).
 
-**verified:** Plotting now constructs and initializes one property model per temperature and continues through 30 increasing loadings, rather than constructing and initializing 150 independent models. All 150 solves check optimal termination. Two independently cold-started states agree with the continuation values to maximum relative error `2.674e-9` across CO2 fugacity and six true-species fractions.
+**conclusion:** Adding eNRTL interaction parameters now would add ambiguity rather than reduce it. The six physical reaction coordinates are the smallest identifiable regression supported by the retained local data.
 
-**verified:** The complete fit, Hessian, 150-state continuation sweep, table, and two saved figures take 134.19 s. The former complete run took about three minutes, and a fit-only run took about 124 s; most remaining runtime is the simultaneous fit rather than plotting.
+**verified:** The local package still lacks the liquid diffusivity, viscosity, surface tension, thermal conductivity, and vapor-phase interfaces needed by the rate-based absorber. It also uses ion names different from the sibling column package. These interface gaps are separate from the equilibrium Hessian fix.
 
-## Absorber integration findings
+## Recommended next scientific step
 
-**verified:** The local package does not expose the liquid diffusivity, viscosity, surface tension, and thermal-conductivity methods required by the sibling rate-based MEA column. It also defines no vapor phase.
+1. Acquire the independent Kim et al. calorimetry series used by Akula et al. and retain its source uncertainty and run identity.
+2. Test the present model against that data without fitting.
+3. If the temperature bias persists, fit one physically selected standard-state heat-capacity contribution at a time and require improvement on a source-level or temperature holdout before retaining it.
+4. Propagate the resulting correlated prediction range through a small isothermal column case before enabling the energy balance in a full absorber.
 
-**verified:** Local ions are named `MEAH^+` and `MEACOO^-`; the sibling absorber eNRTL package uses `MEA_+` and `MEACOO_-`. A deliberate species mapping is required.
+Do not fit the 120 C Kim-Svendsen holdout merely to lower its error. Its failure is useful evidence that the current caloric temperature dependence is not transferable.
 
-**verified:** The active `mea-flowsheet` work uses the same reduced reactions and a custom apparent-enthalpy eNRTL class, but its published molecule-electrolyte terms are also currently commented. Its present tests are construction/property smoke checks, not thermodynamic validation.
+## Reproduction
 
-**verified:** The MEA-Absorption-Column model currently uses the same six species but concentration-basis equilibrium with a standard-concentration correction. Directly transferring these activity-basis K values would be wrong unless the column uses the same activity convention or performs an explicit standard-state conversion.
+```bash
+env MPLBACKEND=Agg PYTHONDONTWRITEBYTECODE=1 .venv/bin/python Fitting_Routine.py
+.venv/bin/python Calorimetry_Validation.py generate
+.venv/bin/python Calorimetry_Validation.py render
+```
 
-**unknown:** Capture, temperature bulge, solvent circulation, pressure drop, and regeneration-duty sensitivity to these fitted constants has not yet been quantified in a solved full column.
-
-## Recommended staged path
-
-1. **Validate the liquid property interface.** Check fugacity, Henry's constant, species fractions, enthalpy, density, viscosity, surface tension, and diffusivities over absorber and stripper states, including units and finite-value checks.
-2. **Complete caloric validation.** Implement or independently calculate equilibrium heat capacity, and replace near-duplicate consecutive differences with a stable differential-enthalpy evaluation.
-3. **Rebuild the joint thermodynamic regression.** Estimate or fix standard-state ion properties and selected water-ion-pair interactions using VLE plus calorimetry; use speciation as validation or weight it by documented uncertainty. Do not enable the current heat residual before this step.
-4. **Align the column interface.** Use one species naming convention, one activity/standard-state convention, validated transport methods, and a separate vapor package.
-5. **Bring up the column in stages.** Start with one or two isothermal finite elements, then energy balances, then full discretization and kinetics. Check termination and physical bounds at each stage.
-6. **Propagate prediction uncertainty.** Evaluate correlated uncertainty in equilibrium pressure/speciation through capture, rich/lean loading, temperature profile, circulation, and duty only after the thermodynamic fit has defensible uncertainty weights.
+The retained comparison values are in `data/Plots/Calorimetry_Validation.csv`; the model-versus-observation figure is `data/Plots/Calorimetry_Validation.png`. The fit also writes `data/Parameters/Parameter_Correlation.csv`.
 
 ## Primary references
 
-- Akula, Lee, Eslick, Bhattacharyya, and Miller, “A Modified Electrolyte Non-Random Two-Liquid Model with Analytical Expression for Excess Enthalpy: Application to the MEA-H2O-CO2 System,” *AIChE Journal* 69(1), 2023, [doi:10.1002/aic.17935](https://doi.org/10.1002/aic.17935). Key locations: pp. 3-4, 8-11; Tables 1, 3, 6, 7; eq. 34.
-- Akula et al., “Appendix of eNRTL Model from Akula,” 2023. Key locations: pp. 18-21; eqs. D9-D33.
-- Zhang, Que, and Chen, “Thermodynamic Modeling for CO2 Absorption in Aqueous MEA Solution with Electrolyte NRTL Model,” *Fluid Phase Equilibria* 311, 67-75, 2011, [doi:10.1016/j.fluid.2011.08.025](https://doi.org/10.1016/j.fluid.2011.08.025). Key locations: pp. 68, 71-73; Tables 8-10.
-- Song and Chen, “Symmetric Electrolyte Nonrandom Two-Liquid Activity Coefficient Model,” *Industrial & Engineering Chemistry Research* 48, 7788-7797, 2009, [doi:10.1021/ie9004578](https://doi.org/10.1021/ie9004578).
-
-## Bottom line
-
-The reduced eNRTL equilibrium formulation is suitable for provisional equilibrium initialization over its fitted domain, and the local enthalpy correction now provides a dimensionally consistent property path. The six-coefficient VLE/speciation fit does not reproduce calorimetry: its approximately `31 kJ/mol` low-loading heat bias is too large to treat as parameter uncertainty. The next regression must jointly address standard-state caloric properties and selected interactions before non-isothermal column predictions are trusted.
+- Kim and Svendsen, “Heat of Absorption of Carbon Dioxide (CO2) in Monoethanolamine (MEA) and 2-(Aminoethyl)ethanolamine,” *Industrial & Engineering Chemistry Research* 46, 5803-5809, 2007, [doi:10.1021/ie0616489](https://doi.org/10.1021/ie0616489).
+- Akula et al., “A Modified Electrolyte Non-Random Two-Liquid Model with Analytical Expression for Excess Enthalpy: Application to the MEA-H2O-CO2 System,” *AIChE Journal* 69(1), 2023, [doi:10.1002/aic.17935](https://doi.org/10.1002/aic.17935).

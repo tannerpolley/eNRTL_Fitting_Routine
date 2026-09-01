@@ -33,10 +33,10 @@ optarg = {
     # 'mu_strategy': 'monotone',
 }
 
-param_dic = {'rxn_coeffs': [
-    '1',
-    '2',
-    '3',
+param_dic = {'reaction_parameters': [
+    'log_k_ref',
+    'dh_rxn_ref',
+    'dcp_rxn',
 ], 'molecules': [
     'H2O',
     'MEA',
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     dataset_dir = os.path.join('data', 'data_sets_to_load')
 
     obj_expr, dfs, param_block_names = load_datasets(m, obj_expr, dataset_dir, species_dic, get_mole_fraction, column_names,
-                                                     exclude_list=['Xu', 'Bottinger', 'kim'])
+                                                     exclude_list=['Xu', 'Bottinger'])
 
     # %% Model Initializing and Solving
 
