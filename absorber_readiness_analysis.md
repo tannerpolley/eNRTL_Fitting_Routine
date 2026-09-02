@@ -104,7 +104,9 @@ MEA + CO2 + H2O <-> MEAH+ + HCO3-
 
 **verified:** Mesh refinement at `nfe=1, 3, 5, 10, 20, 40` is monotone and remains feasible. The 40-element result changes by only `0.05` percentage points at 40 C and `0.08` percentage points at 80 C relative to 20 elements; 40 elements is therefore the adapter default. The retained mesh table is `data/Plots/Absorber_Mesh_Refinement.csv`.
 
-**conclusion:** The fixed-bicarbonate candidate is usable for a first 40-80 C absorber-range process check through the repaired sibling column. The two-point test is one finite element and representative inlet conditions, not a validated plant-scale prediction; mesh refinement and calibrated operating cases remain required.
+**verified:** Reusing the six NCCC inlet/design cases with the repaired eNRTL builder at `nfe=40` gives optimal, zero-DOF solutions for the fixed-bicarbonate candidate: 97.989-99.850% capture with maximum active-constraint residual `5.8e-9`. Against the accepted physical-coordinate baseline on the same cases, the candidate changes capture by only `0.002-0.022` percentage points. The paired results are in `data/Plots/NCCC_eNRTL_Candidate_vs_Baseline.csv`.
+
+**conclusion:** The fixed-bicarbonate candidate is usable for a first 40-80 C absorber-range process check through the repaired sibling column. The two-point test uses a 40-element mesh, but representative inlet conditions rather than a validated plant-scale operating point; full flowsheet validation remains required.
 
 ## Parameters and curvature
 
@@ -135,9 +137,9 @@ MEA + CO2 + H2O <-> MEAH+ + HCO3-
 
 ## Recommended next scientific step
 
-1. Run the fixed-bicarbonate candidate through the six calibrated NCCC cases with the repaired eNRTL column and retain capture, temperature, and balance diagnostics.
-2. Compare those cases against a baseline using the same `nfe=40` mesh and the same inlet data; do not compare across different meshes or parameter bases.
-3. Only after that comparison, propagate the candidate into the full absorber flowsheet. Keep the 120 C calorimetry series as a holdout until a source-backed temperature-dependence correction is identified.
+1. Propagate the candidate into the full absorber flowsheet using the repaired eNRTL column and the validated `nfe=40` initialization path.
+2. Compare full-flowsheet energy duty, temperature profiles, and capture against measured operating cases; retain the candidate and baseline as paired runs.
+3. Keep the 120 C calorimetry series as a holdout until a source-backed temperature-dependence correction is identified.
 
 Do not fit the 120 C Kim-Svendsen holdout merely to lower its error. Its failure is useful evidence that the current caloric temperature dependence is not transferable.
 
@@ -156,6 +158,7 @@ env MPLBACKEND=Agg PYTHONDONTWRITEBYTECODE=1 .venv/bin/python Fitting_Routine.py
 The retained comparison values are in `data/Plots/Calorimetry_Validation.csv`; the model-versus-observation figure is `data/Plots/Calorimetry_Validation.png`. The fit also writes `data/Parameters/Parameter_Correlation.csv`.
 The profile values and figure are in `data/Plots/DeltaCp_Profile.csv` and `data/Plots/DeltaCp_Profile.png`; the ten-solve profile required about `7.5 minutes` and used warm starts. The fixed-candidate outputs are `data/Parameters/Parameters_fixed_bicarbonate.csv`, `data/Parameters/Parameter_Correlation_fixed_bicarbonate.csv`, and `data/Plots/Fixed_Bicarbonate_Summary.csv`.
 The absorber adapter defaults to sibling checkouts at `../mea-flowsheet` and `../idaes-pse`, uses 40 finite elements, solves 313.15 K then 353.15 K with a warm start, and writes `data/Parameters/Parameters_fixed_bicarbonate_legacy_coefficients.csv` and `data/Plots/Absorber_Calorimetry_Summary.csv`.
+The NCCC paired check used the same `nfe=40` mesh and the six cases `K13`, `K17`, `K18`, `K19`, `K20`, and `K21`; its candidate-versus-baseline capture table is `data/Plots/NCCC_eNRTL_Candidate_vs_Baseline.csv`.
 
 ## Primary references
 
