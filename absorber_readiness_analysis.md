@@ -1,7 +1,7 @@
 # eNRTL joint-regression and absorber-readiness analysis
 
 Date: 2026-09-01  
-Branch: `codex/enrtl-joint-caloric-regression`
+Branch: `codex/dcp-profile-validation`
 
 ## Result
 
@@ -77,6 +77,21 @@ MEA + CO2 + H2O <-> MEAH+ + HCO3-
 
 **inference:** Increasing the heat weight cannot repair that trend with the current parameter set; it rotates the regression away from the VLE data and drives the reaction heat capacities to compensate.
 
+## Reaction heat-capacity profile
+
+**verified:** A warm-started five-point profile was run for each existing reaction `Delta Cp` coordinate at offsets `0`, `+/-1`, and `+/-2` local curvature scales. At each fixed coordinate, the other five parameters were re-optimized against the original objective; the 27 Kim 2014 observations remained validation-only.
+
+| Profile | Current `Delta Cp` | Candidate | Original objective change | Kim 2014 40-80 C MAE | Kim 2014 120 C MAE | Included-VLE pressure MAPE | Decision |
+|---|---:|---:|---:|---:|---:|---:|---|
+| bicarbonate | `-167.82` | `-284.79` | `+0.418` (`+0.60%`) | `3.36 -> 2.72` | `12.26 -> 10.00` | `42.20% -> 40.87%` | preferred validation candidate |
+| carbamate | `-241.98` | `-362.93` | `+0.455` (`+0.65%`) | `3.36 -> 4.15` | `12.26 -> 9.69` | `42.20% -> 41.83%` | reject for absorber-range validation |
+
+**verified:** The bicarbonate candidate improves every reported comparison except for a negligible speciation change (`0.005853 -> 0.005856`). A more extreme bicarbonate shift lowers the 120 C error further, but costs `+1.58` objective units; the one-scale candidate is the better compromise for a model intended primarily for 40-80 C absorption.
+
+**verified:** The carbamate profile has the desired direction at 120 C but degrades the independent 40-80 C comparison. This separates a high-temperature extrapolation improvement from an absorber-range improvement; it is not a reason to alter the carbamate coordinate.
+
+**inference:** The high-temperature residual is partly reducible by the bicarbonate reaction temperature dependence, but the profile does not establish a unique physical correction. Keep the current six-parameter fit as the reproducible baseline until the bicarbonate candidate is refit with its coordinate fixed, its five-parameter curvature is checked, and its predictions are propagated through a small isothermal absorber case.
+
 ## Parameters and curvature
 
 | Reaction | Coordinate | Value | Local curvature scale | Relative scale |
@@ -106,10 +121,9 @@ MEA + CO2 + H2O <-> MEAH+ + HCO3-
 
 ## Recommended next scientific step
 
-1. Profile the two existing reaction `Delta Cp` coordinates against the 2014 validation residuals while refitting the other coordinates to the original objective.
-2. Retain a shift only if it improves the independent 120 C comparison without materially degrading VLE, speciation, or the independent 40 and 80 C comparisons.
-3. Add a standard-state heat-capacity contribution only if neither existing reaction coordinate can satisfy that comparison and the new coordinate remains identifiable.
-4. Propagate the resulting correlated prediction range through a small isothermal column case before enabling the energy balance in a full absorber.
+1. Refit with bicarbonate `Delta Cp` fixed at the one-scale candidate `-284.79 J/mol/K`; compute the reduced five-parameter curvature and correlations.
+2. Compare that candidate against the baseline through a small isothermal 40 and 80 C absorber case before enabling a full non-isothermal energy balance.
+3. Add a standard-state heat-capacity contribution only if the fixed-coordinate candidate still cannot represent the intended temperature range and the new coordinate remains identifiable.
 
 Do not fit the 120 C Kim-Svendsen holdout merely to lower its error. Its failure is useful evidence that the current caloric temperature dependence is not transferable.
 
@@ -119,9 +133,12 @@ Do not fit the 120 C Kim-Svendsen holdout merely to lower its error. Its failure
 env MPLBACKEND=Agg PYTHONDONTWRITEBYTECODE=1 .venv/bin/python Fitting_Routine.py
 .venv/bin/python Calorimetry_Validation.py generate
 .venv/bin/python Calorimetry_Validation.py render
+.venv/bin/python Profile_DeltaCp.py run
+.venv/bin/python Profile_DeltaCp.py render
 ```
 
 The retained comparison values are in `data/Plots/Calorimetry_Validation.csv`; the model-versus-observation figure is `data/Plots/Calorimetry_Validation.png`. The fit also writes `data/Parameters/Parameter_Correlation.csv`.
+The profile values and figure are in `data/Plots/DeltaCp_Profile.csv` and `data/Plots/DeltaCp_Profile.png`; the ten-solve profile required about `7.5 minutes` and used warm starts.
 
 ## Primary references
 
