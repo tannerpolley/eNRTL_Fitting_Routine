@@ -98,9 +98,13 @@ MEA + CO2 + H2O <-> MEAH+ + HCO3-
 
 **verified:** The candidate refit gives fit-heat MAE `7.01 kJ/mol CO2`, independent Kim 2014 MAEs of `2.82` at 40 C, `2.60` at 80 C, and `10.00` at 120 C, included-VLE pressure MAPE `40.87%`, and speciation MAE `0.005856`. The fixed coordinate is not assigned a curvature scale because it is a selected profile value, not a freely estimated parameter.
 
-**verified:** A direct one-finite-element construction of the installed `MEAColumn` using the current eNRTL liquid package and the IDAES wet-CO2 vapor package fails during model construction at `surf_tens_phase` in `idaes.models_extra.column_models.MEAsolvent_column.MEAColumn`. No column solve was attempted after that failure. The current eNRTL configuration comments out surface tension, thermal conductivity, and viscosity methods and does not provide the liquid transport interface needed by this rate-based column.
+**verified:** A direct one-finite-element construction of the installed `MEAColumn` using the fitting repository's standalone eNRTL liquid package fails at `surf_tens_phase` because that package does not expose the complete rate-based transport interface. The repaired sibling `mea-flowsheet/eNRTL/MEA_eNRTL.py` does provide the needed surface-tension, viscosity, and diffusivity methods; its construction test passes and its repaired column solves. No guessed transport properties were added to the fitting package.
 
-**conclusion:** The fixed-candidate Hessian result is encouraging, but the absorber-range process test is currently blocked by missing property interfaces, not by the reaction equilibrium regression. Adding guessed transport correlations would confound this thermodynamic validation and is deferred.
+**verified:** The fitting-repository adapter `Absorber_Calorimetry_Validation.py` converts the candidate physical coordinates to the sibling column's legacy coefficients before property-block construction. It writes only fitting-repository outputs and does not modify the dirty sibling checkouts.
+
+**verified:** Mesh refinement at `nfe=1, 3, 5, 10, 20, 40` is monotone and remains feasible. The 40-element result changes by only `0.05` percentage points at 40 C and `0.08` percentage points at 80 C relative to 20 elements; 40 elements is therefore the adapter default. The retained mesh table is `data/Plots/Absorber_Mesh_Refinement.csv`.
+
+**conclusion:** The fixed-bicarbonate candidate is usable for a first 40-80 C absorber-range process check through the repaired sibling column. The two-point test is one finite element and representative inlet conditions, not a validated plant-scale prediction; mesh refinement and calibrated operating cases remain required.
 
 ## Parameters and curvature
 
@@ -131,9 +135,9 @@ MEA + CO2 + H2O <-> MEAH+ + HCO3-
 
 ## Recommended next scientific step
 
-1. Refit with bicarbonate `Delta Cp` fixed at the one-scale candidate `-284.79 J/mol/K`; compute the reduced five-parameter curvature and correlations.
-2. Compare that candidate against the baseline through a small isothermal 40 and 80 C absorber case before enabling a full non-isothermal energy balance.
-3. Add a standard-state heat-capacity contribution only if the fixed-coordinate candidate still cannot represent the intended temperature range and the new coordinate remains identifiable.
+1. Run the fixed-bicarbonate candidate through the six calibrated NCCC cases with the repaired eNRTL column and retain capture, temperature, and balance diagnostics.
+2. Compare those cases against a baseline using the same `nfe=40` mesh and the same inlet data; do not compare across different meshes or parameter bases.
+3. Only after that comparison, propagate the candidate into the full absorber flowsheet. Keep the 120 C calorimetry series as a holdout until a source-backed temperature-dependence correction is identified.
 
 Do not fit the 120 C Kim-Svendsen holdout merely to lower its error. Its failure is useful evidence that the current caloric temperature dependence is not transferable.
 
@@ -146,10 +150,12 @@ env MPLBACKEND=Agg PYTHONDONTWRITEBYTECODE=1 .venv/bin/python Fitting_Routine.py
 .venv/bin/python Profile_DeltaCp.py run
 .venv/bin/python Profile_DeltaCp.py render
 .venv/bin/python Profile_DeltaCp.py candidate
+.venv/bin/python Absorber_Calorimetry_Validation.py
 ```
 
 The retained comparison values are in `data/Plots/Calorimetry_Validation.csv`; the model-versus-observation figure is `data/Plots/Calorimetry_Validation.png`. The fit also writes `data/Parameters/Parameter_Correlation.csv`.
 The profile values and figure are in `data/Plots/DeltaCp_Profile.csv` and `data/Plots/DeltaCp_Profile.png`; the ten-solve profile required about `7.5 minutes` and used warm starts. The fixed-candidate outputs are `data/Parameters/Parameters_fixed_bicarbonate.csv`, `data/Parameters/Parameter_Correlation_fixed_bicarbonate.csv`, and `data/Plots/Fixed_Bicarbonate_Summary.csv`.
+The absorber adapter defaults to sibling checkouts at `../mea-flowsheet` and `../idaes-pse`, uses 40 finite elements, solves 313.15 K then 353.15 K with a warm start, and writes `data/Parameters/Parameters_fixed_bicarbonate_legacy_coefficients.csv` and `data/Plots/Absorber_Calorimetry_Summary.csv`.
 
 ## Primary references
 

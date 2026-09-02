@@ -1,0 +1,3 @@
+temperature_C,label,termination,solve_s,degrees_of_freedom,capture_percent,co2_vapor_out_mol_s,liquid_outlet_temperature_C,vapor_outlet_temperature_C,liquid_inlet_temperature_C,vapor_inlet_temperature_C,max_constraint_residual,minimum_mole_fraction,co2_vapor_in_mol_s
+40.0,cold_start,optimal,2.757276992997504,0,99.39028780616333,3.072949456936879,41.25737440647214,51.7873003514527,40.0,40.0,3.1145352963335426e-10,2.4747246162864903e-08,504.00000000000006
+80.0,warm_start,optimal,2.660576313006459,0,99.3089865662655,3.4827077060218743,42.310365457899366,55.83339608435682,80.0,80.0,4.45452053021711e-09,8.09144595336681e-08,504.00000000000006
