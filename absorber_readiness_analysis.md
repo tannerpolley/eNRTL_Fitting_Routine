@@ -108,6 +108,10 @@ MEA + CO2 + H2O <-> MEAH+ + HCO3-
 
 **conclusion:** The fixed-bicarbonate candidate is usable for a first 40-80 C absorber-range process check through the repaired sibling column. The two-point test uses a 40-element mesh, but representative inlet conditions rather than a validated plant-scale operating point; full flowsheet validation remains required.
 
+**verified:** The sibling recirculating absorber wrapper is not yet compatible with the current eNRTL package as a full flowsheet. After stripping its obsolete `MEAColumn` constructor options in memory, construction reaches `HeatExchangerNTU` and fails because the eNRTL CO2 component provides `enth_mol_liq_comp` but no `cp_mol_liq_comp`. The existing CO2 enthalpy method contains an unresolved sign-convention TODO, so a liquid-CO2 heat-capacity method must be source-backed before the full loop is enabled.
+
+**reference-backed:** The Akula et al. eNRTL formulation defines the aqueous infinite-dilution CO2 enthalpy from the ideal-gas enthalpy and the temperature derivative of the Henry correlation, then obtains heat capacity by differentiating that enthalpy. For the current `ln H = A/T + B ln(T) + C T + D` correlation, the corresponding analytic expressions are `h_CO2,aq = h_CO2,ig + R(A - B T - C T^2)` and `cp_CO2,aq = cp_CO2,ig + R(-B - 2 C T)`. This agrees with the structure of the sibling `EnthMolCO2` method, so the CO2 derivative is not a reason to invent a separate empirical liquid-CO2 correlation. However, a full `HeatExchangerNTU` build also requests `cp_mol_liq_comp` for the true ionic species. Those standard-state ionic heat capacities are additional model inputs, not implied by the reaction `Delta Cp` fit; they must be supplied from the selected eNRTL parameterization and checked against loaded-solution heat-capacity data.
+
 ## Parameters and curvature
 
 | Reaction | Coordinate | Value | Local curvature scale | Relative scale |
@@ -133,12 +137,12 @@ MEA + CO2 + H2O <-> MEAH+ + HCO3-
 
 **conclusion:** Adding eNRTL interaction parameters now would add ambiguity rather than reduce it. The six physical reaction coordinates are the smallest identifiable regression supported by the retained local data.
 
-**verified:** The local package still lacks the liquid diffusivity, viscosity, surface tension, thermal conductivity, and vapor-phase interfaces needed by the rate-based absorber. It also uses ion names different from the sibling column package. These interface gaps are separate from the equilibrium Hessian fix.
+**verified:** The standalone fitting package still lacks the liquid diffusivity, viscosity, surface tension, thermal conductivity, and vapor-phase interfaces needed by the rate-based absorber. It also uses ion names different from the sibling column package. These interface gaps are separate from the equilibrium Hessian fix.
 
 ## Recommended next scientific step
 
-1. Propagate the candidate into the full absorber flowsheet using the repaired eNRTL column and the validated `nfe=40` initialization path.
-2. Compare full-flowsheet energy duty, temperature profiles, and capture against measured operating cases; retain the candidate and baseline as paired runs.
+1. Resolve the full-loop property boundary with a source-backed dissolved-CO2 liquid heat-capacity/enthalpy formulation and update the wrapper's obsolete column options.
+2. Propagate the candidate into the full absorber flowsheet using the validated `nfe=40` initialization path, then compare energy duty, temperature profiles, and capture against measured operating cases.
 3. Keep the 120 C calorimetry series as a holdout until a source-backed temperature-dependence correction is identified.
 
 Do not fit the 120 C Kim-Svendsen holdout merely to lower its error. Its failure is useful evidence that the current caloric temperature dependence is not transferable.
