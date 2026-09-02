@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pyomo.environ as pyo
+from scipy.linalg import eigh
 from idaes.core.solvers import get_solver
 from idaes.models.properties.modular_properties.base.generic_property import GenericParameterBlock
 from idaes.models_extra.column_models.properties import ModularPropertiesInherentReactionsInitializer
@@ -13,6 +14,7 @@ from idaes.models_extra.column_models.properties import ModularPropertiesInheren
 from Fitting_Routine import column_names, get_mole_fraction, param_dic, species_dic
 from Load_Datasets import add_ABS_dataset, load_datasets, heat_of_absorption_expression
 from Parameter_Setup import get_estimated_params, load_fitted_params, setup_param_scaling
+from Uncertainty_Analysis import get_reduced_hessian
 from eNRTL_property_setup import get_prop_dict
 
 
@@ -20,6 +22,15 @@ DATA_FILE = os.path.join("data", "Plots", "DeltaCp_Profile.csv")
 PLOT_FILE = os.path.join("data", "Plots", "DeltaCp_Profile.png")
 DATASET_DIR = os.path.join("data", "data_sets_to_load")
 FIT_PARAMETER_FILE = os.path.join("data", "Parameters", "Parameters_fit.csv")
+CANDIDATE_PARAMETER_FILE = os.path.join(
+    "data", "Parameters", "Parameters_fixed_bicarbonate.csv"
+)
+CANDIDATE_CORRELATION_FILE = os.path.join(
+    "data", "Parameters", "Parameter_Correlation_fixed_bicarbonate.csv"
+)
+CANDIDATE_SUMMARY_FILE = os.path.join(
+    "data", "Plots", "Fixed_Bicarbonate_Summary.csv"
+)
 REGULARIZATION = 0.01
 
 SOLVER_OPTIONS = {
@@ -309,10 +320,105 @@ def render():
     plt.close(fig)
 
 
+def refit_fixed_bicarbonate():
+    model, scaled, variables, scaled_variables, fitted, fit_blocks, validation = build_model()
+    scales = {
+        var.name: iscale.get_scaling_factor(var, default=1) for var in variables
+    }
+    target_name = "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn"
+    target_value = -284.78887228330444
+    set_parameter_start(scaled_variables, fitted, scales)
+    target = scaled.find_component(target_name)
+    target.fix(target_value * scales[target_name])
+
+    solver = get_solver("ipopt", options=SOLVER_OPTIONS)
+    results = solver.solve(scaled, tee=False)
+    if not pyo.check_optimal_termination(results):
+        raise RuntimeError(
+            f"Fixed bicarbonate refit failed: {results.solver.termination_condition}"
+        )
+    pyo.TransformationFactory("core.scale_model").propagate_solution(scaled, model)
+
+    estimated = [var for var in variables if var.name != target_name]
+    estimated_scaled = [scaled.find_component(var.name) for var in estimated]
+    estimated_names = {var.name for var in estimated_scaled}
+    active_bounds = sum(
+        1
+        for var, dual in scaled.ipopt_zL_out.items()
+        if var.name in estimated_names and dual > 0.2
+    ) + sum(
+        1
+        for var, dual in scaled.ipopt_zU_out.items()
+        if var.name in estimated_names and dual < -0.2
+    )
+    if active_bounds:
+        raise RuntimeError(
+            f"Fixed bicarbonate refit has {active_bounds} active estimated bounds"
+        )
+    hessian = np.asarray(get_reduced_hessian(scaled, estimated_scaled), dtype=float)
+    eigenvalues, eigenvectors = eigh(hessian)
+    if eigenvalues[0] <= 0:
+        raise RuntimeError(
+            f"Fixed bicarbonate Hessian is not positive definite: {eigenvalues[0]}"
+        )
+    inverse = eigenvectors @ np.diag(1 / eigenvalues) @ eigenvectors.T
+    std_scaled = np.sqrt(np.diag(inverse))
+    correlation = inverse / np.outer(std_scaled, std_scaled)
+    labels = [var.name for var in estimated]
+    pd.DataFrame(correlation, index=labels, columns=labels).to_csv(
+        CANDIDATE_CORRELATION_FILE
+    )
+
+    curvature = {
+        var.name: np.sqrt(inverse[i, i]) / scales[var.name]
+        for i, var in enumerate(estimated)
+    }
+    rows = []
+    for var in variables:
+        row = fitted[fitted["Object_Name"] == var.name].iloc[0].copy()
+        row["Value"] = pyo.value(var)
+        row["Curvature_Scale"] = curvature.get(var.name, np.nan)
+        row["Relative_Curvature_Scale"] = (
+            abs(row["Curvature_Scale"] / row["Value"])
+            if np.isfinite(row["Curvature_Scale"])
+            else np.nan
+        )
+        rows.append(row)
+    pd.DataFrame(rows, columns=fitted.columns).to_csv(
+        CANDIDATE_PARAMETER_FILE, index=False
+    )
+
+    evaluation = evaluate(model, fit_blocks, validation)
+    summary = pd.DataFrame(
+        [
+            {
+                "candidate": "bicarbonate_dcp_fixed_one_curvature_scale",
+                "bicarbonate_dcp_J_mol_K": target_value,
+                "objective": pyo.value(model.obj),
+                "hessian_min_eigenvalue": eigenvalues[0],
+                "hessian_max_eigenvalue": eigenvalues[-1],
+                "hessian_condition": eigenvalues[-1] / eigenvalues[0],
+                "active_estimated_bounds": active_bounds,
+                "max_abs_correlation": np.max(
+                    np.abs(correlation - np.eye(len(correlation)))
+                ),
+                "fit_heat_mae": evaluation["fit_heat"]["mae"],
+                "external_40_mae": evaluation["external_40"]["mae"],
+                "external_80_mae": evaluation["external_80"]["mae"],
+                "external_120_mae": evaluation["external_120"]["mae"],
+                "vle_pressure_mape": evaluation["vle"]["pressure_mape"],
+                "speciation_mae": evaluation["speciation"]["mae"],
+            }
+        ]
+    )
+    summary.to_csv(CANDIDATE_SUMMARY_FILE, index=False)
+    print(summary.to_string(index=False))
+
+
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("stage", choices=("run", "render"))
+    parser.add_argument("stage", choices=("run", "render", "candidate"))
     args = parser.parse_args()
-    {"run": run_profile, "render": render}[args.stage]()
+    {"run": run_profile, "render": render, "candidate": refit_fixed_bicarbonate}[args.stage]()

@@ -1,0 +1,2 @@
+candidate,bicarbonate_dcp_J_mol_K,objective,hessian_min_eigenvalue,hessian_max_eigenvalue,hessian_condition,active_estimated_bounds,max_abs_correlation,fit_heat_mae,external_40_mae,external_80_mae,external_120_mae,vle_pressure_mape,speciation_mae
+bicarbonate_dcp_fixed_one_curvature_scale,-284.78887228330444,70.14491097259388,39.97399710006641,842.5793333896977,21.07818568357023,0,0.6561817160724844,7.00793414971208,2.8171689943642515,2.6030236562739812,9.995177694644712,0.40874436731613867,0.005855587070298589

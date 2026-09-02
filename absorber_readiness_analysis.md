@@ -92,6 +92,16 @@ MEA + CO2 + H2O <-> MEAH+ + HCO3-
 
 **inference:** The high-temperature residual is partly reducible by the bicarbonate reaction temperature dependence, but the profile does not establish a unique physical correction. Keep the current six-parameter fit as the reproducible baseline until the bicarbonate candidate is refit with its coordinate fixed, its five-parameter curvature is checked, and its predictions are propagated through a small isothermal absorber case.
 
+### Fixed-bicarbonate refit
+
+**verified:** Fixing bicarbonate `Delta Cp` at `-284.79 J/mol/K` and re-optimizing the other five coordinates gives objective `70.1449`, compared with `69.7269` for the baseline. The five-parameter reduced Hessian is positive definite, with eigenvalues `39.974` to `842.579`, condition `21.08`, maximum absolute correlation `0.656`, and zero active bounds on the remaining estimated parameters. The baseline six-parameter values are retained in `data/Parameters/Parameters_fit.csv`; the candidate is stored separately.
+
+**verified:** The candidate refit gives fit-heat MAE `7.01 kJ/mol CO2`, independent Kim 2014 MAEs of `2.82` at 40 C, `2.60` at 80 C, and `10.00` at 120 C, included-VLE pressure MAPE `40.87%`, and speciation MAE `0.005856`. The fixed coordinate is not assigned a curvature scale because it is a selected profile value, not a freely estimated parameter.
+
+**verified:** A direct one-finite-element construction of the installed `MEAColumn` using the current eNRTL liquid package and the IDAES wet-CO2 vapor package fails during model construction at `surf_tens_phase` in `idaes.models_extra.column_models.MEAsolvent_column.MEAColumn`. No column solve was attempted after that failure. The current eNRTL configuration comments out surface tension, thermal conductivity, and viscosity methods and does not provide the liquid transport interface needed by this rate-based column.
+
+**conclusion:** The fixed-candidate Hessian result is encouraging, but the absorber-range process test is currently blocked by missing property interfaces, not by the reaction equilibrium regression. Adding guessed transport correlations would confound this thermodynamic validation and is deferred.
+
 ## Parameters and curvature
 
 | Reaction | Coordinate | Value | Local curvature scale | Relative scale |
@@ -135,10 +145,11 @@ env MPLBACKEND=Agg PYTHONDONTWRITEBYTECODE=1 .venv/bin/python Fitting_Routine.py
 .venv/bin/python Calorimetry_Validation.py render
 .venv/bin/python Profile_DeltaCp.py run
 .venv/bin/python Profile_DeltaCp.py render
+.venv/bin/python Profile_DeltaCp.py candidate
 ```
 
 The retained comparison values are in `data/Plots/Calorimetry_Validation.csv`; the model-versus-observation figure is `data/Plots/Calorimetry_Validation.png`. The fit also writes `data/Parameters/Parameter_Correlation.csv`.
-The profile values and figure are in `data/Plots/DeltaCp_Profile.csv` and `data/Plots/DeltaCp_Profile.png`; the ten-solve profile required about `7.5 minutes` and used warm starts.
+The profile values and figure are in `data/Plots/DeltaCp_Profile.csv` and `data/Plots/DeltaCp_Profile.png`; the ten-solve profile required about `7.5 minutes` and used warm starts. The fixed-candidate outputs are `data/Parameters/Parameters_fixed_bicarbonate.csv`, `data/Parameters/Parameter_Correlation_fixed_bicarbonate.csv`, and `data/Plots/Fixed_Bicarbonate_Summary.csv`.
 
 ## Primary references
 
