@@ -1,7 +1,7 @@
 Description,Name,Value,Curvature_Scale,Relative_Curvature_Scale,Object,Object_Name
-bic log K at 353.15 K,"$\ln K_{bic,ref}$",5.222165711230465,0.13793151699860323,0.02641270396724031,params.reaction_MEA_bicarbonate_formation_combo.log_k_ref,params.reaction_MEA_bicarbonate_formation_combo.log_k_ref
-bic reaction enthalpy,"$\Delta H_{bic,ref}$",-67536.04048870875,3773.600081029297,0.05587535268165743,params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref,params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref
-bic reaction heat capacity,"$\Delta C_{p,bic}$",-167.82214393444386,116.9667283488606,0.6969683833532192,params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn,params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn
-car log K at 353.15 K,"$\ln K_{car,ref}$",11.681879221989371,0.1118853285297688,0.00957768235774614,params.reaction_MEA_carbamate_formation_combo.log_k_ref,params.reaction_MEA_carbamate_formation_combo.log_k_ref
-car reaction enthalpy,"$\Delta H_{car,ref}$",-102785.85809405587,3158.738319629586,0.03073125406745285,params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref,params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref
-car reaction heat capacity,"$\Delta C_{p,car}$",-241.9772923084004,120.95652201286372,0.4998672431572813,params.reaction_MEA_carbamate_formation_combo.dcp_rxn,params.reaction_MEA_carbamate_formation_combo.dcp_rxn
+bic log K at 353.15 K,"$\ln K_{bic,ref}$",5.309228910495366,0.13753180635643678,0.025904290185070334,params.reaction_MEA_bicarbonate_formation_combo.log_k_ref,params.reaction_MEA_bicarbonate_formation_combo.log_k_ref
+bic reaction enthalpy,"$\Delta H_{bic,ref}$",-64824.68992278605,3664.0078886733922,0.05652179583176817,params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref,params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref
+bic reaction heat capacity,"$\Delta C_{p,bic}$",-182.71028026665462,114.34821291674182,0.625844439348774,params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn,params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn
+car log K at 353.15 K,"$\ln K_{car,ref}$",11.721141173375184,0.11308466489320343,0.009647922776502138,params.reaction_MEA_carbamate_formation_combo.log_k_ref,params.reaction_MEA_carbamate_formation_combo.log_k_ref
+car reaction enthalpy,"$\Delta H_{car,ref}$",-101995.07706216491,3248.1646551036692,0.031846288552965625,params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref,params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref
+car reaction heat capacity,"$\Delta C_{p,car}$",-282.31471975068496,122.48538484465149,0.4338611353769283,params.reaction_MEA_carbamate_formation_combo.dcp_rxn,params.reaction_MEA_carbamate_formation_combo.dcp_rxn

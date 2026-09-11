@@ -1,0 +1,755 @@
+{
+  "baseline_identity": "baseline-six-parameter-physical-reaction-coordinates",
+  "calorimetry_summary": [
+    {
+      "bias_kJ_per_mol_CO2": 1.1578748960911567,
+      "mae_kJ_per_mol_CO2": 5.0514562474872,
+      "n": 37,
+      "rmse_kJ_per_mol_CO2": 6.753049341519289,
+      "role": "fit",
+      "source": "Kim and Svendsen 2007",
+      "temperature_C": 40.0
+    },
+    {
+      "bias_kJ_per_mol_CO2": -5.87368527226084,
+      "mae_kJ_per_mol_CO2": 7.903802946274111,
+      "n": 29,
+      "rmse_kJ_per_mol_CO2": 10.936327370400925,
+      "role": "fit",
+      "source": "Kim and Svendsen 2007",
+      "temperature_C": 80.0
+    },
+    {
+      "bias_kJ_per_mol_CO2": -13.616004937186634,
+      "mae_kJ_per_mol_CO2": 22.87975757409681,
+      "n": 20,
+      "rmse_kJ_per_mol_CO2": 28.48791211706969,
+      "role": "temperature holdout",
+      "source": "Kim and Svendsen 2007",
+      "temperature_C": 120.0
+    },
+    {
+      "bias_kJ_per_mol_CO2": -5.838891632932741,
+      "mae_kJ_per_mol_CO2": 6.463919175879632,
+      "n": 7,
+      "rmse_kJ_per_mol_CO2": 7.470885359288404,
+      "role": "selection-exposed comparison",
+      "source": "Kim et al. 2014",
+      "temperature_C": 120.0
+    },
+    {
+      "bias_kJ_per_mol_CO2": 3.2723213041449295,
+      "mae_kJ_per_mol_CO2": 3.5029753260006373,
+      "n": 11,
+      "rmse_kJ_per_mol_CO2": 4.343139847927257,
+      "role": "selection-exposed comparison",
+      "source": "Kim et al. 2014",
+      "temperature_C": 40.0
+    },
+    {
+      "bias_kJ_per_mol_CO2": 2.0969203411059443,
+      "mae_kJ_per_mol_CO2": 3.188900861498434,
+      "n": 9,
+      "rmse_kJ_per_mol_CO2": 3.8489645785261333,
+      "role": "selection-exposed comparison",
+      "source": "Kim et al. 2014",
+      "temperature_C": 80.0
+    }
+  ],
+  "curvature_diagnostics": {
+    "hessian_eigenvalues": [
+      {
+        "eigenvalue": 36.543380400838984
+      },
+      {
+        "eigenvalue": 62.05019525207012
+      },
+      {
+        "eigenvalue": 77.57532759119883
+      },
+      {
+        "eigenvalue": 84.07955869942901
+      },
+      {
+        "eigenvalue": 575.445282274831
+      },
+      {
+        "eigenvalue": 1220.8426179316698
+      }
+    ],
+    "parameter_correlation": [
+      {
+        "": "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "-0.11397925587737244",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "0.33925331424620575",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "0.9999999999999998",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "-0.23155619671007432",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "-0.21166365394256328",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "-0.06328593648382064"
+      },
+      {
+        "": "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "0.7455752481682263",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "1.0",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "0.33925331424620564",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "-0.2037214309258704",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "-0.25768460759422634",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "-0.15479361809974865"
+      },
+      {
+        "": "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "1.0000000000000002",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "0.7455752481682263",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "-0.11397925587737243",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "0.053422001558847194",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "-0.18136498929662248",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "-0.22031098896426768"
+      },
+      {
+        "": "params.reaction_MEA_carbamate_formation_combo.log_k_ref",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "-0.2203109889642677",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "-0.15479361809974862",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "-0.06328593648382067",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "-0.22595061365504387",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "0.3279168525027137",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "1.0"
+      },
+      {
+        "": "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "-0.18136498929662248",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "-0.25768460759422634",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "-0.21166365394256328",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "0.6566185914792603",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "0.9999999999999999",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "0.3279168525027137"
+      },
+      {
+        "": "params.reaction_MEA_carbamate_formation_combo.dcp_rxn",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "0.05342200155884723",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "-0.2037214309258704",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "-0.23155619671007432",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "0.9999999999999999",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "0.6566185914792602",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "-0.22595061365504387"
+      }
+    ],
+    "reduced_hessian": [
+      {
+        "": "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "155.08279475384185",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "-106.04080890251558",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "95.4853606277625",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "-28.65598908228029",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "29.25683302659701",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "-1.2074394814091356"
+      },
+      {
+        "": "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "-395.53152270164634",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "298.47495558545734",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "-106.04080890251558",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "140.4985792057094",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "-71.55669542312197",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "28.384224510719495"
+      },
+      {
+        "": "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "716.1943116947159",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "-395.5315227016463",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "155.08279475384182",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "-227.46335763712494",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "140.8028392772243",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "-29.14171504808784"
+      },
+      {
+        "": "params.reaction_MEA_carbamate_formation_combo.log_k_ref",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "-29.14171504808789",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "28.3842245107195",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "-1.2074394814091474",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "167.76987454327994",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "-129.0178944842978",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "146.4011417440433"
+      },
+      {
+        "": "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "140.80283927722434",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "-71.55669542312195",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "29.256833026597025",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "-307.4968879441002",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "286.812836402677",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "-129.01789448429787"
+      },
+      {
+        "": "params.reaction_MEA_carbamate_formation_combo.dcp_rxn",
+        "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn": "-227.46335763712491",
+        "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref": "140.4985792057094",
+        "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref": "-28.655989082280357",
+        "params.reaction_MEA_carbamate_formation_combo.dcp_rxn": "513.167756095383",
+        "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref": "-307.4968879441002",
+        "params.reaction_MEA_carbamate_formation_combo.log_k_ref": "167.76987454328"
+      }
+    ]
+  },
+  "delta_cp_profile": [
+    {
+      "dcp_rxn_J_mol_K": -411.4067061001383,
+      "external_120_bias": -1.3504335201414688,
+      "external_120_mae": 2.0395990144418903,
+      "external_120_rmse": 2.5588347120012,
+      "external_40_80_mae": 3.1230841876779185,
+      "fit_heat_mae": 5.493516053725785,
+      "objective": 68.28739953746185,
+      "objective_delta": 1.698863524143448,
+      "offset_curvature_scales": -2.0000000000000004,
+      "reaction": "bicarbonate",
+      "speciation_mae": 0.0046849431681283025,
+      "speciation_n": 172.0,
+      "vle_log_rmse": 0.485114488609687,
+      "vle_n": 240.0,
+      "vle_pressure_mape_percent": 42.51863656808233
+    },
+    {
+      "dcp_rxn_J_mol_K": -297.0584931833965,
+      "external_120_bias": -3.3263612592979137,
+      "external_120_mae": 4.085860020263466,
+      "external_120_rmse": 4.506252149642066,
+      "external_40_80_mae": 3.0794351796957256,
+      "fit_heat_mae": 5.840217951289233,
+      "objective": 67.03424585049885,
+      "objective_delta": 0.4457098371804449,
+      "offset_curvature_scales": -1.0000000000000002,
+      "reaction": "bicarbonate",
+      "speciation_mae": 0.00467999933547578,
+      "speciation_n": 172.0,
+      "vle_log_rmse": 0.47142816392033243,
+      "vle_n": 240.0,
+      "vle_pressure_mape_percent": 40.25786917171754
+    },
+    {
+      "dcp_rxn_J_mol_K": -182.71028026665465,
+      "external_120_bias": -5.8401225797955805,
+      "external_120_mae": 6.4656913841885535,
+      "external_120_rmse": 7.4725617281363155,
+      "external_40_80_mae": 3.362001045941117,
+      "fit_heat_mae": 6.30501978743321,
+      "objective": 66.5885360133184,
+      "objective_delta": 0.0,
+      "offset_curvature_scales": 0.0,
+      "reaction": "bicarbonate",
+      "speciation_mae": 0.0046725162493429315,
+      "speciation_n": 172.0,
+      "vle_log_rmse": 0.4616722252977522,
+      "vle_n": 240.0,
+      "vle_pressure_mape_percent": 38.89560916989698
+    },
+    {
+      "dcp_rxn_J_mol_K": -68.36206734991283,
+      "external_120_bias": -8.825774563485748,
+      "external_120_mae": 9.079143344632813,
+      "external_120_rmse": 10.950267864755345,
+      "external_40_80_mae": 4.542884847746267,
+      "fit_heat_mae": 6.8875196114045005,
+      "objective": 67.07256199055503,
+      "objective_delta": 0.48402597723662666,
+      "offset_curvature_scales": 1.0,
+      "reaction": "bicarbonate",
+      "speciation_mae": 0.004662584373720533,
+      "speciation_n": 172.0,
+      "vle_log_rmse": 0.45697619495830877,
+      "vle_n": 240.0,
+      "vle_pressure_mape_percent": 38.21451018555824
+    },
+    {
+      "dcp_rxn_J_mol_K": 45.98614556682898,
+      "external_120_bias": -12.201477570353973,
+      "external_120_mae": 12.201477570353973,
+      "external_120_rmse": 14.760814882426052,
+      "external_40_80_mae": 5.997435046510878,
+      "fit_heat_mae": 7.871302716818997,
+      "objective": 68.58784042109328,
+      "objective_delta": 1.999304407774872,
+      "offset_curvature_scales": 2.0,
+      "reaction": "bicarbonate",
+      "speciation_mae": 0.00465021979232464,
+      "speciation_n": 172.0,
+      "vle_log_rmse": 0.4581903299971009,
+      "vle_n": 240.0,
+      "vle_pressure_mape_percent": 38.36965400679795
+    },
+    {
+      "dcp_rxn_J_mol_K": -527.2854894399879,
+      "external_120_bias": 0.050202815632179716,
+      "external_120_mae": 8.070553540917743,
+      "external_120_rmse": 8.961667478523136,
+      "external_40_80_mae": 5.13077350549427,
+      "fit_heat_mae": 6.856203108414648,
+      "objective": 68.39306118075334,
+      "objective_delta": 1.8045251674349316,
+      "offset_curvature_scales": -2.0000000000000004,
+      "reaction": "carbamate",
+      "speciation_mae": 0.004649419960949311,
+      "speciation_n": 172.0,
+      "vle_log_rmse": 0.46827944380351444,
+      "vle_n": 240.0,
+      "vle_pressure_mape_percent": 39.00917241962137
+    },
+    {
+      "dcp_rxn_J_mol_K": -404.80010459533645,
+      "external_120_bias": -2.5959176568478335,
+      "external_120_mae": 6.57095823739139,
+      "external_120_rmse": 7.210332462388312,
+      "external_40_80_mae": 3.962634786623186,
+      "fit_heat_mae": 6.262587037219305,
+      "objective": 67.05465408798226,
+      "objective_delta": 0.4661180746638536,
+      "offset_curvature_scales": -1.0000000000000002,
+      "reaction": "carbamate",
+      "speciation_mae": 0.004660304374768683,
+      "speciation_n": 172.0,
+      "vle_log_rmse": 0.46362244273573977,
+      "vle_n": 240.0,
+      "vle_pressure_mape_percent": 38.81263810930213
+    },
+    {
+      "dcp_rxn_J_mol_K": -282.31471975068496,
+      "external_120_bias": -5.840121169955576,
+      "external_120_mae": 6.465689931305418,
+      "external_120_rmse": 7.472559999948818,
+      "external_40_80_mae": 3.36200076112884,
+      "fit_heat_mae": 6.305019341435072,
+      "objective": 66.58853601334904,
+      "objective_delta": 3.063860276597552e-11,
+      "offset_curvature_scales": 0.0,
+      "reaction": "carbamate",
+      "speciation_mae": 0.004672516131924194,
+      "speciation_n": 172.0,
+      "vle_log_rmse": 0.46167226468992634,
+      "vle_n": 240.0,
+      "vle_pressure_mape_percent": 38.89561032644526
+    },
+    {
+      "dcp_rxn_J_mol_K": -159.82933490603347,
+      "external_120_bias": -9.570431168089355,
+      "external_120_mae": 9.570431168089355,
+      "external_120_rmse": 10.034023206300345,
+      "external_40_80_mae": 3.794283012220622,
+      "fit_heat_mae": 6.818203250358439,
+      "objective": 67.08179713621107,
+      "objective_delta": 0.4932611228926618,
+      "offset_curvature_scales": 1.0000000000000002,
+      "reaction": "carbamate",
+      "speciation_mae": 0.004685973134828522,
+      "speciation_n": 172.0,
+      "vle_log_rmse": 0.46310701214999755,
+      "vle_n": 240.0,
+      "vle_pressure_mape_percent": 39.17031187866623
+    },
+    {
+      "dcp_rxn_J_mol_K": -37.343950061382,
+      "external_120_bias": -13.68625817135844,
+      "external_120_mae": 13.68625817135844,
+      "external_120_rmse": 13.898584909061123,
+      "external_40_80_mae": 4.520019520282036,
+      "fit_heat_mae": 7.769419034840782,
+      "objective": 68.61021092261414,
+      "objective_delta": 2.02167490929574,
+      "offset_curvature_scales": 2.0,
+      "reaction": "carbamate",
+      "speciation_mae": 0.0047007431381783735,
+      "speciation_n": 172.0,
+      "vle_log_rmse": 0.468498772562417,
+      "vle_n": 240.0,
+      "vle_pressure_mape_percent": 39.94982153488062
+    }
+  ],
+  "fit": {
+    "excluded_datasets": [
+      "Xu_2011_VLE.csv",
+      "Bottinger_2007_ChEq.csv"
+    ],
+    "heat_objective_weight": 0.002,
+    "objective": 66.58853601333162,
+    "observation_counts": {
+      "calorimetry_fit": 66,
+      "speciation": 172,
+      "vle": 240
+    },
+    "regularization": 0.01,
+    "solver_options": {
+      "constr_viol_tol": 1e-08,
+      "halt_on_ampl_error": "no",
+      "linear_solver": "ma57",
+      "max_iter": 300,
+      "tol": 1e-08
+    },
+    "temperature_domain_C": [
+      40,
+      60,
+      80,
+      100,
+      120
+    ],
+    "termination": "optimal",
+    "vle_loading_domain": "0.1 < CO2_loading < 0.6"
+  },
+  "generated_outputs": [
+    {
+      "bytes": 1385,
+      "file": "data/Parameters/Parameters_fit.csv",
+      "sha256": "29d016ec6304ec7605c13547af8ec8ce8c7bd8184ce2e873c0eb69bd857e15ae"
+    },
+    {
+      "bytes": 1357,
+      "file": "data/Parameters/Reduced_Hessian.csv",
+      "sha256": "ee100354d3f9e1b6e6e791785b4847078262ac2132cc26441f1f16ce1923f4e1"
+    },
+    {
+      "bytes": 120,
+      "file": "data/Parameters/Hessian_Eigenvalues.csv",
+      "sha256": "5c68be077f31e8ca8ca6b25c0b78738347139969f7e64cc1ab495f083f77e51b"
+    },
+    {
+      "bytes": 1377,
+      "file": "data/Parameters/Parameter_Correlation.csv",
+      "sha256": "d5b96f3f1f059ecb62649da50462c638f9efabba10e9c219289f4932d0b2b4e2"
+    },
+    {
+      "bytes": 28369,
+      "file": "data/Plots/Equilibrium_Residuals.csv",
+      "sha256": "c36e4aeb3dfd9cb6b4a89dafbcec7dac214a4332e3d69b4a976cc79060f49acc"
+    },
+    {
+      "bytes": 2622,
+      "file": "data/Plots/Fit_Metrics.json",
+      "sha256": "edc820f7cb5a0f3e47d7722cd1e4e9ba3c511de0e4ac4509641a25a8bdd77fb5"
+    },
+    {
+      "bytes": 11882,
+      "file": "data/Plots/Calorimetry_Validation.csv",
+      "sha256": "5ca94bfb3211b9f48b357fb57ec5fa5d3e4aa389f4d50874545409188a034f1b"
+    },
+    {
+      "bytes": 8168,
+      "file": "data/Plots/DeltaCp_Profile.csv",
+      "sha256": "ad3c84861c295e1f8e33954ad89ca9b987ad57fa4709a39d6e1f29b3b53f81ab"
+    },
+    {
+      "bytes": 515,
+      "file": "data/Plots/Historical_Coordinate_Summary.csv",
+      "sha256": "5afdf3c5441d5a0c7abc9378878d0be8f95d52b71aebc8c0c7c733cb8f9538cc"
+    },
+    {
+      "bytes": 1348,
+      "file": "data/Parameters/Parameters_historical_coordinate.csv",
+      "sha256": "bcdd06e0785cd36c218a397109cce1ae1db32c1844c2c7da2908c5b1551ff1d5"
+    }
+  ],
+  "historical_coordinate_sensitivity": {
+    "parameters": [
+      {
+        "curvature_scale": 0.13927271456527426,
+        "id": "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref",
+        "relative_curvature_scale": 0.02620391408768463,
+        "unit": "dimensionless",
+        "value": 5.314958448544523
+      },
+      {
+        "curvature_scale": 2488.8559496750386,
+        "id": "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref",
+        "relative_curvature_scale": 0.03692443486031934,
+        "unit": "J/mol",
+        "value": -67404.03635397748
+      },
+      {
+        "curvature_scale": null,
+        "id": "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn",
+        "relative_curvature_scale": null,
+        "unit": "J/mol/K",
+        "value": -284.78887228330444
+      },
+      {
+        "curvature_scale": 0.10931361611280431,
+        "id": "params.reaction_MEA_carbamate_formation_combo.log_k_ref",
+        "relative_curvature_scale": 0.009309068622457022,
+        "unit": "dimensionless",
+        "value": 11.742701718741035
+      },
+      {
+        "curvature_scale": 3071.1462437301225,
+        "id": "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref",
+        "relative_curvature_scale": 0.030300659481473858,
+        "unit": "J/mol",
+        "value": -101355.75582464975
+      },
+      {
+        "curvature_scale": 119.54733085543076,
+        "id": "params.reaction_MEA_carbamate_formation_combo.dcp_rxn",
+        "relative_curvature_scale": 0.4242711555547317,
+        "unit": "J/mol/K",
+        "value": -281.7710544077016
+      }
+    ],
+    "role": "historical-coordinate sensitivity only",
+    "summary": {
+      "active_estimated_bounds": 0.0,
+      "bicarbonate_dcp_J_mol_K": -284.78887228330444,
+      "candidate": "historical_coordinate_sensitivity",
+      "external_120_mae": 4.327107064589624,
+      "external_40_mae": 2.8411092204749124,
+      "external_80_mae": 3.430985113315586,
+      "fit_heat_mae": 5.889379777719813,
+      "hessian_condition": 21.358163871334312,
+      "hessian_max_eigenvalue": 850.9274928215264,
+      "hessian_min_eigenvalue": 39.84085420205956,
+      "max_abs_correlation": 0.6618482165315666,
+      "objective": 66.94548457431792,
+      "speciation_mae": 0.004679305227083859,
+      "vle_pressure_mape_percent": 40.06552911669245
+    }
+  },
+  "identity": "mea-enrtl-corrected-fit-payload-v1",
+  "inputs": [
+    {
+      "file": "data/data_sets_to_load/Aronu_2011_VLE.csv",
+      "fit_rows": 106,
+      "included_in_fit": true,
+      "rows": 106,
+      "sha256": "d70c79407d3b6e96b480f4d8cd2af4c12c55c2baab906d71b4540750659d241d"
+    },
+    {
+      "file": "data/data_sets_to_load/Bottinger_2007_ChEq.csv",
+      "fit_rows": 68,
+      "included_in_fit": false,
+      "rows": 68,
+      "sha256": "227bf202ca5df2447f8bdf90a95f599eb5006cd781e002bb6e1971d53217be8c"
+    },
+    {
+      "file": "data/data_sets_to_load/Hilliard_2008_VLE.csv",
+      "fit_rows": 55,
+      "included_in_fit": true,
+      "rows": 55,
+      "sha256": "4039394233367cbe491f6f97c3e5adcd5f6975fc696a3fde00cd4ca5af44da6c"
+    },
+    {
+      "file": "data/data_sets_to_load/Idris_2014_VLE.csv",
+      "fit_rows": 30,
+      "included_in_fit": true,
+      "rows": 30,
+      "sha256": "77d5c26450aa0266b5532d4ea166de3f5190b7faa2e2c9cce71998bbb388bb77"
+    },
+    {
+      "file": "data/data_sets_to_load/Jakobsen_2005_ChEq.csv",
+      "fit_rows": 24,
+      "included_in_fit": true,
+      "rows": 24,
+      "sha256": "d50f8deac3b33f3f4bfc97aa95a1b307efc81037ce2b55c5aad9bfb4bb9d2fb0"
+    },
+    {
+      "file": "data/data_sets_to_load/Jou_1995_VLE.csv",
+      "fit_rows": 74,
+      "included_in_fit": true,
+      "rows": 74,
+      "sha256": "ed376aec2bda38348ed5387197215b744e15719f1f6041e998913991ca1a213a"
+    },
+    {
+      "file": "data/data_sets_to_load/Mamun_2005_VLE.csv",
+      "fit_rows": 19,
+      "included_in_fit": true,
+      "rows": 19,
+      "sha256": "568519446e88d1cd5637a076162e42b20d7c28792cefbde87eeda958e1df3847"
+    },
+    {
+      "file": "data/data_sets_to_load/Matin_2012_ChEq.csv",
+      "fit_rows": 19,
+      "included_in_fit": true,
+      "rows": 19,
+      "sha256": "321a1c1f319ab989b50710d38d8fbf7da392a556168c6830c30219c28a2db833"
+    },
+    {
+      "file": "data/data_sets_to_load/Xu_2011_VLE.csv",
+      "fit_rows": 63,
+      "included_in_fit": false,
+      "rows": 63,
+      "sha256": "3118395550de0e3bcf18562670ac443d26f3cc87dac0a85a4438914bb5e55574"
+    },
+    {
+      "file": "data/data_sets_to_load/kim_2007_dHabs.csv",
+      "fit_rows": 66,
+      "included_in_fit": true,
+      "rows": 86,
+      "sha256": "abf11f56337092e09b1fab912f2e0be413f4985d0ca33ee14f534bec6d77fb48"
+    },
+    {
+      "file": "data/data_sets_to_load/kim_2014_dHabs.csv",
+      "fit_rows": 0,
+      "included_in_fit": true,
+      "rows": 27,
+      "sha256": "73641455b13144a9e3a76c2b8275076946b2507e66863692fee8bb5748c8e24a"
+    }
+  ],
+  "limitations": [
+    "Kim 2014 is a selection-exposed comparison, not untouched validation.",
+    "Historical NCCC outputs are parameter-transfer/model-to-model evidence only.",
+    "The 120 C Kim and Svendsen rows are retained as a temperature holdout and are not fitted.",
+    "Curvature scales are objective-local diagnostics, not calibrated confidence intervals.",
+    "The packet does not establish a measured-column or production claim."
+  ],
+  "metrics": {
+    "objective": 66.58853601333162,
+    "solver_termination": "optimal",
+    "speciation": {
+      "bias": 0.0009735969796487377,
+      "mae": 0.004672516257672781,
+      "n": 172,
+      "rmse": 0.006443427471202094,
+      "sources": {
+        "Jakobsen_2005_ChEq": {
+          "bias": 0.002016258838772465,
+          "mae": 0.0057758664441489435,
+          "n": 96,
+          "rmse": 0.007977759278019043,
+          "unit": "mol/mol true species"
+        },
+        "Matin_2012_ChEq": {
+          "bias": -0.00034344957924439156,
+          "mae": 0.0032788107589660507,
+          "n": 76,
+          "rmse": 0.0036834776291401624,
+          "unit": "mol/mol true species"
+        }
+      },
+      "unit": "mol/mol true species"
+    },
+    "vle": {
+      "bias": 4.130989813163144,
+      "log_rmse": 0.46167222251972323,
+      "mae": 13.926661008585716,
+      "n": 240,
+      "pressure_mape_fraction": 0.38895609184992347,
+      "pressure_mape_percent": 38.895609184992345,
+      "rmse": 94.0245458327836,
+      "sources": {
+        "Aronu_2011_VLE": {
+          "bias": -0.16745545680688384,
+          "log_rmse": 0.3315133627100314,
+          "mae": 0.4460904542072571,
+          "n": 89,
+          "pressure_mape_fraction": 0.260457877363937,
+          "pressure_mape_percent": 26.0457877363937,
+          "rmse": 1.2073531609951613,
+          "unit": "kPa"
+        },
+        "Hilliard_2008_VLE": {
+          "bias": 1.38159281654031,
+          "log_rmse": 0.4653269300410502,
+          "mae": 1.783623217845376,
+          "n": 55,
+          "pressure_mape_fraction": 0.4317511138789662,
+          "pressure_mape_percent": 43.17511138789662,
+          "rmse": 5.197190741578996,
+          "unit": "kPa"
+        },
+        "Idris_2014_VLE": {
+          "bias": -0.30230370964318065,
+          "log_rmse": 0.6833620966844872,
+          "mae": 0.3937791191811618,
+          "n": 30,
+          "pressure_mape_fraction": 0.41752541259133324,
+          "pressure_mape_percent": 41.752541259133324,
+          "rmse": 1.5150898785710734,
+          "unit": "kPa"
+        },
+        "Jou_1995_VLE": {
+          "bias": 23.223763499281873,
+          "log_rmse": 0.5563531992850417,
+          "mae": 64.69552454909561,
+          "n": 47,
+          "pressure_mape_fraction": 0.6494144004525851,
+          "pressure_mape_percent": 64.94144004525852,
+          "rmse": 212.30461117291975,
+          "unit": "kPa"
+        },
+        "Mamun_2005_VLE": {
+          "bias": -8.004962487984352,
+          "log_rmse": 0.21839433376461195,
+          "mae": 8.004962487984352,
+          "n": 19,
+          "pressure_mape_fraction": 0.17758739453876787,
+          "pressure_mape_percent": 17.75873945387679,
+          "rmse": 9.236102449068472,
+          "unit": "kPa"
+        }
+      },
+      "unit": "kPa"
+    }
+  },
+  "model_identity": "mea-enrtl-six-parameter-corrected-dh-v1",
+  "parameters": [
+    {
+      "curvature_scale": 0.13753180635643678,
+      "id": "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref",
+      "label": "bic log K at 353.15 K",
+      "relative_curvature_scale": 0.025904290185070334,
+      "unit": "dimensionless",
+      "value": 5.309228910495366
+    },
+    {
+      "curvature_scale": 3664.0078886733922,
+      "id": "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref",
+      "label": "bic reaction enthalpy",
+      "relative_curvature_scale": 0.05652179583176817,
+      "unit": "J/mol",
+      "value": -64824.68992278605
+    },
+    {
+      "curvature_scale": 114.34821291674182,
+      "id": "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn",
+      "label": "bic reaction heat capacity",
+      "relative_curvature_scale": 0.625844439348774,
+      "unit": "J/mol/K",
+      "value": -182.71028026665462
+    },
+    {
+      "curvature_scale": 0.11308466489320343,
+      "id": "params.reaction_MEA_carbamate_formation_combo.log_k_ref",
+      "label": "car log K at 353.15 K",
+      "relative_curvature_scale": 0.009647922776502138,
+      "unit": "dimensionless",
+      "value": 11.721141173375184
+    },
+    {
+      "curvature_scale": 3248.1646551036692,
+      "id": "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref",
+      "label": "car reaction enthalpy",
+      "relative_curvature_scale": 0.031846288552965625,
+      "unit": "J/mol",
+      "value": -101995.07706216491
+    },
+    {
+      "curvature_scale": 122.48538484465149,
+      "id": "params.reaction_MEA_carbamate_formation_combo.dcp_rxn",
+      "label": "car reaction heat capacity",
+      "relative_curvature_scale": 0.4338611353769283,
+      "unit": "J/mol/K",
+      "value": -282.31471975068496
+    }
+  ],
+  "schema_version": 1,
+  "unavailable_properties": [
+    {
+      "property": "total_reacting_solution_heat_capacity",
+      "reason": "complete equilibrated-enthalpy derivative not established",
+      "status": "unavailable"
+    },
+    {
+      "property": "transport_properties",
+      "reason": "not part of the fitted property owner",
+      "status": "unavailable"
+    },
+    {
+      "property": "process_model_execution",
+      "reason": "this packet is a comparison/adoption record only",
+      "status": "unavailable"
+    }
+  ]
+}

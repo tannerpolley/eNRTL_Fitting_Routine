@@ -1,0 +1,6 @@
+,params.reaction_MEA_bicarbonate_formation_combo.log_k_ref,params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref,params.reaction_MEA_carbamate_formation_combo.log_k_ref,params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref,params.reaction_MEA_carbamate_formation_combo.dcp_rxn
+params.reaction_MEA_bicarbonate_formation_combo.log_k_ref,1.0,0.6542186922457154,-0.07596158731531424,-0.2181637826196456,-0.21850225413097257
+params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref,0.6542186922457154,1.0000000000000002,0.028697508087268273,-0.16934695590719084,-0.35965557305630047
+params.reaction_MEA_carbamate_formation_combo.log_k_ref,-0.07596158731531424,0.02869750808726829,1.0000000000000002,0.273275255444366,-0.2564952714300543
+params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref,-0.2181637826196457,-0.1693469559071908,0.273275255444366,1.0000000000000002,0.6618482165315666
+params.reaction_MEA_carbamate_formation_combo.dcp_rxn,-0.2185022541309726,-0.35965557305630047,-0.25649527143005424,0.6618482165315666,0.9999999999999999

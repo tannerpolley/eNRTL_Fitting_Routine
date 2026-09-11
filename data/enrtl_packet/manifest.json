@@ -1,0 +1,332 @@
+{
+  "dependencies": {
+    "idaes": "2.7.0.dev0",
+    "idaes_requested_revision": "eNRTL",
+    "idaes_source": "dallan-keylogic/idaes-pse",
+    "idaes_source_commit": "3cdf9b5299b8453fc29274f55d060c1b30a8294b",
+    "numpy": "2.5.2",
+    "pandas": "2.3.3",
+    "pyomo": "6.8.1a0",
+    "python": "3.12.13",
+    "scipy": "1.18.0",
+    "solver": "ipopt via IDAES"
+  },
+  "evidence_roles": {
+    "Kim and Svendsen 2007 120 C": "temperature holdout",
+    "Kim and Svendsen 2007 40/80 C": "calibration calorimetry",
+    "Kim et al. 2014": "selection-exposed comparison",
+    "VLE": "direct calibration residuals, source-separated and pooled",
+    "historical NCCC": "parameter-transfer/model-to-model evidence only",
+    "historical-coordinate sensitivity": "comparison only; no candidate selection rule",
+    "speciation": "direct calibration residuals, source-separated and pooled"
+  },
+  "files": [
+    {
+      "bytes": 29066,
+      "path": "payload.json",
+      "sha256": "2fc98da966de177180c2fb32ba944f271356ed2f3558cdffa60a12183ed219a1"
+    }
+  ],
+  "fit_policy": {
+    "coordinate_family": "six physical reaction coordinates",
+    "excluded_datasets": [
+      "Xu_2011_VLE.csv",
+      "Bottinger_2007_ChEq.csv"
+    ],
+    "heat_objective_weight": {
+      "unit": "relative squared-residual weight",
+      "value": 0.002
+    },
+    "reaction_start_temperature": {
+      "unit": "K",
+      "value": 353.15
+    },
+    "regularization": {
+      "unit": "objective coefficient",
+      "value": 0.01
+    },
+    "solver_options": {
+      "constr_viol_tol": 1e-08,
+      "halt_on_ampl_error": "no",
+      "linear_solver": "ma57",
+      "max_iter": 300,
+      "solver": "ipopt",
+      "tol": 1e-08
+    },
+    "temperature_C": [
+      40.0,
+      60.0,
+      80.0,
+      100.0,
+      120.0
+    ],
+    "vle_loading_filter": "0.1 < CO2_loading < 0.6"
+  },
+  "identity": "mea-enrtl-corrected-fit-manifest-v1",
+  "limitations": [
+    "Kim 2014 is selection-exposed, not untouched validation.",
+    "Historical NCCC is parameter-transfer/model-to-model evidence, not measured process validation.",
+    "120 C calorimetry is retained as adverse holdout evidence and was not fitted.",
+    "Curvature scales are not calibrated confidence intervals.",
+    "No production or process capability is established."
+  ],
+  "metric_contract": {
+    "VLE_unit": "kPa",
+    "calorimetry_unit": "kJ/mol CO2",
+    "counts": "n is enumerated residual row count",
+    "curvature": "local objective curvature scale, not measurement uncertainty",
+    "grouping": "source-separated and pooled without average-of-averages",
+    "pressure_mape": "fraction and percent are explicit; percent=100*fraction",
+    "residual_owner": "one direct residual table",
+    "speciation_unit": "mol/mol true species"
+  },
+  "model": {
+    "activity_species_order": [
+      "H2O",
+      "MEA",
+      "CO2",
+      "MEAH^+",
+      "MEACOO^-",
+      "HCO3^-"
+    ],
+    "bases": {
+      "enthalpy_phase_basis": "apparent",
+      "property_basis": "true",
+      "reaction_activities": "true-species activity",
+      "state_components": "apparent"
+    },
+    "conventions": {
+      "calorimetry_metric": "kJ/mol CO2",
+      "enthalpy": "J/mol",
+      "henry_pressure_unit": "Pa",
+      "henry_type": "Kpx",
+      "input_pressure_unit": "kPa converted to Pa",
+      "loading": "mol CO2/mol MEA",
+      "poynting_enabled": false
+    },
+    "equations": {
+      "born": "z_i^2*e^2/(8*pi*epsilon_0*k_B*T*r_i)*(1/epsilon-1/epsilon_water)",
+      "debye_huckel": "A_DH proportional to v^(-1/2)*(epsilon*T)^(-3/2)",
+      "debye_huckel_derivative": "dA_DH/dT=-A_DH/2*(dv_dT/v + 3*d_epsilon_dT/epsilon + 3/T) at fixed true composition",
+      "local_enrtl": "G_ij=exp(-alpha_ij*tau_ij), tau_ij=A_ij+B_ij/T",
+      "reaction_enthalpy": "Delta H(T)=Delta H_ref + Delta Cp*(T-T_ref)",
+      "reaction_ln_K": "ln K(T)=ln K_ref + Delta H_ref/(R*T_ref)*(1-T_ref/T) + Delta Cp/R*(ln(T/T_ref)+T_ref/T-1)"
+    },
+    "fixed_parameters": {
+      "born_radius": {
+        "HCO3^-": {
+          "unit": "angstrom",
+          "value": 3.0
+        },
+        "MEACOO^-": {
+          "unit": "angstrom",
+          "value": 300.0
+        },
+        "MEAH^+": {
+          "unit": "angstrom",
+          "value": 300.0
+        }
+      },
+      "debye_huckel_closest_approach": {
+        "unit": "model constant",
+        "value": 14.9
+      },
+      "henry_CO2": {
+        "coefficients": {
+          "c1": {
+            "unit": "K",
+            "value": -8477.711
+          },
+          "c2": {
+            "unit": "dimensionless",
+            "value": -21.95743
+          },
+          "c3": {
+            "unit": "1/K",
+            "value": 0.005780758
+          },
+          "c4": {
+            "unit": "dimensionless",
+            "value": 170.7125
+          }
+        },
+        "form": "ln(H/Pa)=c1/T+c2*ln(T/K)+c3*T+c4"
+      },
+      "local_alpha": {
+        "H2O->CO2": {
+          "unit": "dimensionless",
+          "value": 0.2
+        },
+        "H2O->MEA": {
+          "unit": "dimensionless",
+          "value": 0.2
+        }
+      },
+      "local_tau_A": {
+        "H2O->MEA": {
+          "unit": "dimensionless",
+          "value": 0.1559
+        },
+        "MEA->H2O": {
+          "unit": "dimensionless",
+          "value": 1.5201
+        }
+      },
+      "local_tau_B": {
+        "H2O->MEA": {
+          "unit": "K",
+          "value": 110.8
+        },
+        "MEA->H2O": {
+          "unit": "K",
+          "value": -910.3
+        }
+      },
+      "solvent_permittivity": {
+        "H2O": {
+          "A": 78.51,
+          "B_K": 31989.0,
+          "C_K": 298.15,
+          "form": "A+B_K*(1/T-1/C_K)",
+          "unit": "dimensionless"
+        },
+        "MEA": {
+          "A": 35.76,
+          "B_K": 14836.0,
+          "C_K": 298.15,
+          "form": "A+B_K*(1/T-1/C_K)",
+          "unit": "dimensionless"
+        }
+      }
+    },
+    "identity": "mea-enrtl-six-parameter-corrected-dh-v1",
+    "implementation_owner": "eNRTL_Fitting_Routine",
+    "parameter_order": [
+      "params.reaction_MEA_bicarbonate_formation_combo.log_k_ref",
+      "params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref",
+      "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn",
+      "params.reaction_MEA_carbamate_formation_combo.log_k_ref",
+      "params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref",
+      "params.reaction_MEA_carbamate_formation_combo.dcp_rxn"
+    ],
+    "parameter_units": {
+      "dcp_rxn": "J/mol/K",
+      "dh_rxn_ref": "J/mol",
+      "log_k_ref": "dimensionless"
+    },
+    "reaction_order": [
+      "MEA_carbamate_formation_combo",
+      "MEA_bicarbonate_formation_combo"
+    ],
+    "reactions": [
+      {
+        "direction": "2 MEA + CO2 -> MEAH+ + MEACOO-",
+        "equilibrium_form": "log activity power law",
+        "heat_form": "Delta H(T)=Delta H_ref+Delta Cp*(T-T_ref)",
+        "id": "MEA_carbamate_formation_combo",
+        "stoichiometry": {
+          "CO2": -1,
+          "MEA": -2,
+          "MEACOO^-": 1,
+          "MEAH^+": 1
+        }
+      },
+      {
+        "direction": "MEA + CO2 + H2O -> MEAH+ + HCO3-",
+        "equilibrium_form": "log activity power law",
+        "heat_form": "Delta H(T)=Delta H_ref+Delta Cp*(T-T_ref)",
+        "id": "MEA_bicarbonate_formation_combo",
+        "stoichiometry": {
+          "CO2": -1,
+          "H2O": -1,
+          "HCO3^-": 1,
+          "MEA": -1,
+          "MEAH^+": 1
+        }
+      }
+    ],
+    "reference_state": {
+      "phase": "Liq",
+      "reference_component": "H2O",
+      "type": "InfiniteDilutionSingleSolvent"
+    },
+    "reference_temperature": {
+      "unit": "K",
+      "value": 353.15
+    },
+    "species_order": [
+      "H2O",
+      "MEA",
+      "CO2",
+      "MEAH^+",
+      "MEACOO^-",
+      "HCO3^-"
+    ]
+  },
+  "payload_identity": "mea-enrtl-corrected-fit-payload-v1",
+  "property_domains": {
+    "Kim_2014_comparison": {
+      "role": "selection-exposed comparison",
+      "temperature_C": [
+        40.0,
+        120.0
+      ]
+    },
+    "calibration_VLE": {
+      "amine_weight_fraction": "source rows; no extrapolation claim",
+      "loading": "0.1 < CO2_loading < 0.6",
+      "temperature_C": [
+        0.0,
+        120.0
+      ]
+    },
+    "calibration_calorimetry": {
+      "loading": "source rows",
+      "role": "fit",
+      "source": "Kim and Svendsen 2007",
+      "temperature_C": [
+        40.0,
+        80.0
+      ]
+    },
+    "calibration_speciation": {
+      "amine_weight_fraction": "source rows",
+      "species_basis": "true-species mole fraction",
+      "temperature_C": [
+        20.0,
+        20.0
+      ]
+    },
+    "temperature_holdout_calorimetry": {
+      "role": "temperature holdout; not fitted",
+      "source": "Kim and Svendsen 2007",
+      "temperature_C": [
+        120.0,
+        120.0
+      ]
+    }
+  },
+  "result_identities": {
+    "baseline": "baseline-six-parameter-physical-reaction-coordinates",
+    "candidate_selection": "none",
+    "comparison": "historical-coordinate-sensitivity"
+  },
+  "schema_version": 1,
+  "unavailable_properties": [
+    {
+      "property": "total_reacting_solution_heat_capacity",
+      "reason": "complete equilibrated-enthalpy derivative not established",
+      "status": "unavailable"
+    },
+    {
+      "property": "transport_properties",
+      "reason": "outside the fitting owner",
+      "status": "unavailable"
+    },
+    {
+      "property": "process_model_execution",
+      "reason": "packet is a bounded comparison/adoption record",
+      "status": "unavailable"
+    }
+  ]
+}
