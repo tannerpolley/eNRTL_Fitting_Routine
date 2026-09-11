@@ -163,6 +163,20 @@ if __name__ == "__main__":
         )
     obj_value = pyo.value(m.obj)
 
+    # Retain direct calibration residuals; plotted interpolation is not the fit metric.
+    import json
+    from Profile_DeltaCp import equilibrium_metrics
+    import pandas as pd
+    fit_blocks = [
+        (name.rsplit('_', 1)[1], pd.read_csv(os.path.join(dataset_dir, name + '.csv')),
+         getattr(m, name)) for name in param_block_names
+    ]
+    fit_metrics, residuals = equilibrium_metrics(fit_blocks)
+    residuals.to_csv('data/Plots/Equilibrium_Residuals.csv', index=False)
+    fit_metrics.update(objective=obj_value, solver_termination=str(results.solver.termination_condition))
+    with open('data/Plots/Fit_Metrics.json', 'w') as stream:
+        json.dump(fit_metrics, stream, indent=2, allow_nan=False)
+
     # %% Plotting
 
     plot_fit(df_fit, system_fit_dic, species_dic, get_mole_fraction, obj_value, optarg, config, dataset_dir, column_names)

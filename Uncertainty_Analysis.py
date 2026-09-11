@@ -80,6 +80,11 @@ def uncertainty_analysis(m_scaled, df_unfit, estimated_vars, estimated_vars_scal
     if len(estimated_vars) > 0 and len(active_lbs) + len(active_ubs) == 0:
         H_red = get_reduced_hessian(m_scaled, estimated_vars_scaled)
         W, V = eigh(H_red)
+        pd.DataFrame(H_red, index=[v.name for v in estimated_vars],
+                     columns=[v.name for v in estimated_vars]).to_csv(
+            os.path.join('data', 'Parameters', 'Reduced_Hessian.csv'))
+        pd.DataFrame({'eigenvalue': W}).to_csv(
+            os.path.join('data', 'Parameters', 'Hessian_Eigenvalues.csv'), index=False)
         W_value = 1 / W[0]
 
         if W[0] > 0:

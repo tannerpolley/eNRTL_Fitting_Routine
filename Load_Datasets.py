@@ -131,7 +131,7 @@ def load_datasets(m, obj_expr, dataset_dir, species_dic, get_mole_fraction, colu
         exclude_list = []
     dfs = []
     param_block_names = []
-    for name in os.listdir(dataset_dir):
+    for name in sorted(os.listdir(dataset_dir)):
         filename = os.path.join(dataset_dir, name)
         name, year, dataset_type = name.split('_')
         if name in exclude_list:

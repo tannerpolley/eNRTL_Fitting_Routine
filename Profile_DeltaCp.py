@@ -23,13 +23,13 @@ PLOT_FILE = os.path.join("data", "Plots", "DeltaCp_Profile.png")
 DATASET_DIR = os.path.join("data", "data_sets_to_load")
 FIT_PARAMETER_FILE = os.path.join("data", "Parameters", "Parameters_fit.csv")
 CANDIDATE_PARAMETER_FILE = os.path.join(
-    "data", "Parameters", "Parameters_fixed_bicarbonate.csv"
+    "data", "Parameters", "Parameters_historical_coordinate.csv"
 )
 CANDIDATE_CORRELATION_FILE = os.path.join(
-    "data", "Parameters", "Parameter_Correlation_fixed_bicarbonate.csv"
+    "data", "Parameters", "Parameter_Correlation_historical_coordinate.csv"
 )
 CANDIDATE_SUMMARY_FILE = os.path.join(
-    "data", "Plots", "Fixed_Bicarbonate_Summary.csv"
+    "data", "Plots", "Historical_Coordinate_Summary.csv"
 )
 REGULARIZATION = 0.01
 
@@ -131,7 +131,7 @@ def build_model():
         var.unfix()
 
     fit_blocks = []
-    for filename in os.listdir(DATASET_DIR):
+    for filename in sorted(os.listdir(DATASET_DIR)):
         name, year, dataset_type = filename.split("_")
         dataset_type = dataset_type.split(".")[0]
         if name in {"Xu", "Bottinger"}:
@@ -148,43 +148,48 @@ def build_model():
     return model, scaled, variables, scaled_variables, fitted, fit_blocks, validation
 
 
-def evaluate(model, fit_blocks, validation):
+def equilibrium_metrics(fit_blocks):
+    """Pool observation residuals, retaining each source and explicit units."""
+    records = []
+    for kind, data, block in sorted(fit_blocks, key=lambda item: item[2].local_name):
+        source = block.local_name
+        for i, (_, row) in enumerate(data.iterrows()):
+            if kind == "VLE" and 0.1 < row[column_names["loading"]] < 0.6:
+                observed = float(row[column_names["CO2_pressure"]])
+                predicted = pyo.value(block[i].fug_phase_comp["Liq", "CO2"]) / 1e3
+                records.append(dict(kind="vle", source=source, row=i, species="CO2",
+                                    observed=observed, predicted=predicted, unit="kPa"))
+            elif kind == "ChEq":
+                excluded = {column_names["amine_concentration"], column_names["temperature"],
+                            column_names["loading"], "CO2", "CO3^2-"}
+                for species in sorted(set(data.columns) - excluded):
+                    records.append(dict(kind="speciation", source=source, row=i,
+                                        species=species, observed=float(row[species]),
+                                        predicted=pyo.value(block[i].mole_frac_phase_comp_true["Liq", species]),
+                                        unit="mol/mol true species"))
+    frame = pd.DataFrame(records)
     result = {}
+    for kind, group in frame.groupby("kind", sort=True):
+        def summarize(rows):
+            residual = rows.predicted.to_numpy() - rows.observed.to_numpy()
+            summary = dict(n=len(rows), unit=rows.unit.iloc[0], **metrics(residual))
+            if kind == "vle":
+                fractional = residual / rows.observed.to_numpy()
+                summary.update(log_rmse=metrics(np.log(rows.predicted / rows.observed))["rmse"],
+                               pressure_mape_fraction=float(np.mean(np.abs(fractional))),
+                               pressure_mape_percent=float(100 * np.mean(np.abs(fractional))))
+            return summary
+        result[kind] = summarize(group)
+        result[kind]["sources"] = {
+            source: summarize(rows) for source, rows in group.groupby("source", sort=True)
+        }
+    return result, frame
+
+def evaluate(model, fit_blocks, validation):
+    result, _ = equilibrium_metrics(fit_blocks)
     for dataset_type, data, block in fit_blocks:
         if dataset_type == "dHabs":
             result["fit_heat"] = heat_metrics(model, block, data)
-        elif dataset_type == "VLE":
-            log_residuals = []
-            pressure_errors = []
-            for i, (_, row) in enumerate(data.iterrows()):
-                if not 0.1 < row[column_names["loading"]] < 0.6:
-                    continue
-                predicted = pyo.value(block[i].fug_phase_comp["Liq", "CO2"]) / 1e3
-                observed = row[column_names["CO2_pressure"]]
-                log_residuals.append(np.log(predicted * 1e3) - np.log(observed * 1e3))
-                pressure_errors.append((predicted - observed) / observed)
-            result.setdefault("vle", {})["log_rmse"] = metrics(log_residuals)["rmse"]
-            result["vle"]["pressure_mape"] = float(np.mean(np.abs(pressure_errors)))
-        elif dataset_type == "ChEq":
-            residuals = []
-            excluded = {
-                column_names["amine_concentration"],
-                column_names["temperature"],
-                column_names["loading"],
-                "CO2",
-            }
-            species = [column for column in data.columns if column not in excluded]
-            for i, (_, row) in enumerate(data.iterrows()):
-                for component in species:
-                    if component == "CO3^2-":
-                        continue
-                    residuals.append(
-                        pyo.value(
-                            block[i].mole_frac_phase_comp_true["Liq", component]
-                        )
-                        - row[component]
-                    )
-            result["speciation"] = metrics(residuals)
     result["external"] = heat_metrics(model, model.validation_states, validation)
     validation_groups = list(
         validation.groupby(
@@ -228,12 +233,12 @@ def run_profile():
         "bicarbonate": (
             "params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn",
             float(fitted_values["params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn"]),
-            116.9667283488606,
+            float(fitted.set_index("Object_Name").loc["params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn", "Curvature_Scale"]),
         ),
         "carbamate": (
             "params.reaction_MEA_carbamate_formation_combo.dcp_rxn",
             float(fitted_values["params.reaction_MEA_carbamate_formation_combo.dcp_rxn"]),
-            120.95652201286372,
+            float(fitted.set_index("Object_Name").loc["params.reaction_MEA_carbamate_formation_combo.dcp_rxn", "Curvature_Scale"]),
         ),
     }
     scales = {
@@ -243,6 +248,8 @@ def run_profile():
     baseline_objective = None
 
     for reaction, (target_name, center, scale) in specifications.items():
+        if not np.isfinite(scale) or scale <= 0:
+            raise ValueError(f"Corrected curvature scale unavailable for {reaction}")
         set_parameter_start(scaled_variables, fitted, scales)
         target = scaled.find_component(target_name)
         target.fix(center * scales[target_name])
@@ -273,7 +280,16 @@ def run_profile():
                     "offset_curvature_scales": (candidate - center) / scale,
                     "objective": objective,
                     "objective_delta": objective - baseline_objective,
-                    "vle_pressure_mape": evaluation["vle"]["pressure_mape"],
+                    "vle_n": evaluation["vle"]["n"],
+                    "speciation_n": evaluation["speciation"]["n"],
+                    **{f"vle_{source}_{metric}": values[metric]
+                       for source, values in evaluation["vle"]["sources"].items()
+                       for metric in ("n", "pressure_mape_percent", "log_rmse")},
+                    **{f"speciation_{source}_{metric}": values[metric]
+                       for source, values in evaluation["speciation"]["sources"].items()
+                       for metric in ("n", "mae", "rmse", "bias")},
+                    **{var.name: pyo.value(var) for var in variables},
+                    "vle_pressure_mape_percent": evaluation["vle"]["pressure_mape_percent"],
                     "vle_log_rmse": evaluation["vle"]["log_rmse"],
                     "speciation_mae": evaluation["speciation"]["mae"],
                     "fit_heat_mae": evaluation["fit_heat"]["mae"],
@@ -301,7 +317,7 @@ def render():
         ("external_120_mae", "Kim 2014 120 C MAE (kJ/mol CO2)"),
         ("external_40_80_mae", "Kim 2014 40-80 C MAE (kJ/mol CO2)"),
         ("objective_delta", "Original fit objective change"),
-        ("vle_pressure_mape", "Original-fit VLE pressure MAPE"),
+        ("vle_pressure_mape_percent", "Pooled calibration VLE pressure MAPE (%)"),
     ]
     for axis, (column, ylabel) in zip(axes.flat, plots):
         for reaction, group in data.groupby("reaction"):
@@ -392,7 +408,7 @@ def refit_fixed_bicarbonate():
     summary = pd.DataFrame(
         [
             {
-                "candidate": "bicarbonate_dcp_fixed_one_curvature_scale",
+                "candidate": "historical_coordinate_sensitivity",
                 "bicarbonate_dcp_J_mol_K": target_value,
                 "objective": pyo.value(model.obj),
                 "hessian_min_eigenvalue": eigenvalues[0],
@@ -406,7 +422,7 @@ def refit_fixed_bicarbonate():
                 "external_40_mae": evaluation["external_40"]["mae"],
                 "external_80_mae": evaluation["external_80"]["mae"],
                 "external_120_mae": evaluation["external_120"]["mae"],
-                "vle_pressure_mape": evaluation["vle"]["pressure_mape"],
+                "vle_pressure_mape_percent": evaluation["vle"]["pressure_mape_percent"],
                 "speciation_mae": evaluation["speciation"]["mae"],
             }
         ]

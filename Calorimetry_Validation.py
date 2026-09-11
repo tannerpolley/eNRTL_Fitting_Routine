@@ -81,7 +81,7 @@ def generate():
                     "role": (
                         "fit"
                         if bool(row["fit"])
-                        else "external validation"
+                        else "selection-exposed comparison"
                         if source == "Kim et al. 2014"
                         else "temperature holdout"
                     ),

@@ -157,16 +157,8 @@ class ENRTLDirectTemperatureDerivative(ENRTL):
             )
         )
 
-        v = pyunits.convert(
-            getattr(b, pname + "_vol_mol_solvent"), pyunits.m**3 / pyunits.mol
-        )
-        dv_dT = differentiate(v, b.temperature, mode=Modes.reverse_symbolic)
-        eps = getattr(b, pname + "_relative_permittivity_solvent")
-        d_eps_dT = getattr(b, pname + "_d_relative_permittivity_solvent_dT")
-        A_DH = getattr(b, pname + "_A_DH")
         Ix = getattr(b, pname + "_ionic_strength")
-
-        dA_dT = -A_DH / 2 * (dv_dT / v + 3 * d_eps_dT / eps)
+        dA_dT = ENRTLDirectTemperatureDerivative._dA_DH_dT(b, pname)
         enth_mol_phase_excess_DH = R * b.temperature**2 * (
             4
             * Ix
@@ -181,6 +173,17 @@ class ENRTLDirectTemperatureDerivative(ENRTL):
             enth_mol_phase_excess_lc
             + enth_mol_phase_excess_DH
             + enth_mol_phase_excess_born
+        )
+
+    @staticmethod
+    def _dA_DH_dT(b, pname):
+        """Differentiate A ∝ v**(-1/2) * (eps*T)**(-3/2) at fixed true x."""
+        v = getattr(b, pname + "_vol_mol_solvent")
+        dv_dT = differentiate(v, b.temperature, mode=Modes.reverse_symbolic)
+        eps = getattr(b, pname + "_relative_permittivity_solvent")
+        d_eps_dT = getattr(b, pname + "_d_relative_permittivity_solvent_dT")
+        return -getattr(b, pname + "_A_DH") / 2 * (
+            dv_dT / v + 3 * d_eps_dT / eps + 3 / b.temperature
         )
 
 
@@ -1828,12 +1831,13 @@ def get_prop_dict(components=None):
     if rxn_combinations is not None:
         combined_rxns_dict = {}
         excluded_rxns = rxn_combinations["excluded_rxns"]
-        rxn_combinations.pop("excluded_rxns")
         if excluded_rxns is None:
             excluded_rxns = set()
         else:
             excluded_rxns = set(excluded_rxns)
         for combo_name, combo_dict in rxn_combinations.items():
+            if combo_name == "excluded_rxns":
+                continue
             combined_rxn_dict = deepcopy(_combined_rxn_template)
             for component_rxn, rxn_stoich_coeff in combo_dict.items():
                 assert component_rxn in raw_inherent_reactions
