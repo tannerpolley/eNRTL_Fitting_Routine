@@ -34,6 +34,21 @@ EXPECTED_REFERENCE_STATE = {
     "type": "InfiniteDilutionSingleSolvent",
 }
 EXPECTED_REFERENCE_TEMPERATURE = {"unit": "K", "value": 353.15}
+EXPECTED_INTERACTION_DEFAULTS = {
+    "alpha": {
+        "all_other": {"unit": "dimensionless", "value": 0.2},
+        "molecule_molecule": {"unit": "dimensionless", "value": 0.3},
+        "symmetry": "symmetric",
+    },
+    "tau_A": {"unit": "dimensionless", "value": 0},
+    "tau_B": {"unit": "K", "value": 0},
+}
+EXPECTED_SOLVER = {
+    "execution_route": "IDAES",
+    "executable_sha256": "8f8711b709b5f265ff7cb8b352c037bb999d88628384be8390f26530f08de94e",
+    "name": "IPOPT",
+    "version": "3.13.2",
+}
 EXPECTED_DOMAINS = {
     "Kim_2014_comparison": {"role": "selection-exposed comparison", "temperature_C": [40.0, 120.0]},
     "calibration_VLE": {
@@ -107,6 +122,8 @@ def _validate_contract(manifest, payload):
     _require_equal(model.get("bases"), EXPECTED_BASES, "bases")
     _require_equal(model.get("reference_state"), EXPECTED_REFERENCE_STATE, "reference state")
     _require_equal(model.get("reference_temperature"), EXPECTED_REFERENCE_TEMPERATURE, "reference temperature")
+    _require_equal(model.get("interaction_defaults"), EXPECTED_INTERACTION_DEFAULTS, "interaction defaults")
+    _require_equal(manifest.get("dependencies", {}).get("solver"), EXPECTED_SOLVER, "solver identity")
     _require_equal(manifest.get("property_domains"), EXPECTED_DOMAINS, "property domains")
     _require_equal(manifest.get("result_identities"), EXPECTED_RESULT_IDENTITIES, "result identities")
     unavailable = [

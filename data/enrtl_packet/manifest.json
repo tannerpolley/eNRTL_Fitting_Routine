@@ -9,7 +9,12 @@
     "pyomo": "6.8.1a0",
     "python": "3.12.13",
     "scipy": "1.18.0",
-    "solver": "ipopt via IDAES"
+    "solver": {
+      "execution_route": "IDAES",
+      "executable_sha256": "8f8711b709b5f265ff7cb8b352c037bb999d88628384be8390f26530f08de94e",
+      "name": "IPOPT",
+      "version": "3.13.2"
+    }
   },
   "evidence_roles": {
     "Kim and Svendsen 2007 120 C": "temperature holdout",
@@ -197,6 +202,27 @@
           "form": "A+B_K*(1/T-1/C_K)",
           "unit": "dimensionless"
         }
+      }
+    },
+    "interaction_defaults": {
+      "alpha": {
+        "all_other": {
+          "unit": "dimensionless",
+          "value": 0.2
+        },
+        "molecule_molecule": {
+          "unit": "dimensionless",
+          "value": 0.3
+        },
+        "symmetry": "symmetric"
+      },
+      "tau_A": {
+        "unit": "dimensionless",
+        "value": 0
+      },
+      "tau_B": {
+        "unit": "K",
+        "value": 0
       }
     },
     "identity": "mea-enrtl-six-parameter-corrected-dh-v1",
