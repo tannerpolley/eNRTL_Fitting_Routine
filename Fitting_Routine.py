@@ -33,11 +33,10 @@ optarg = {
     # 'mu_strategy': 'monotone',
 }
 
-param_dic = {'rxn_coeffs': [
-    '1',
-    '2',
-    '3',
-    '4',
+param_dic = {'reaction_parameters': [
+    'log_k_ref',
+    'dh_rxn_ref',
+    'dcp_rxn',
 ], 'molecules': [
     'H2O',
     'MEA',
@@ -119,7 +118,7 @@ if __name__ == "__main__":
     dataset_dir = os.path.join('data', 'data_sets_to_load')
 
     obj_expr, dfs, param_block_names = load_datasets(m, obj_expr, dataset_dir, species_dic, get_mole_fraction, column_names,
-                                                     exclude_list=['Xu', 'Bottinger', 'kim'])
+                                                     exclude_list=['Xu', 'Bottinger'])
 
     # %% Model Initializing and Solving
 
@@ -148,7 +147,9 @@ if __name__ == "__main__":
         var.unfix()
     optarg.pop("nlp_scaling_method", None)  # Scaled model doesn't need user scaling
     solver = get_solver("ipopt", options=optarg)
-    solver.solve(m_scaled, tee=False)
+    results = solver.solve(m_scaled, tee=False)
+    if not pyo.check_optimal_termination(results):
+        raise RuntimeError(f"Parameter fit failed: {results.solver.termination_condition}")
     pyo.TransformationFactory('core.scale_model').propagate_solution(m_scaled, m)
 
     # %% Uncertainty Analysis
@@ -161,6 +162,20 @@ if __name__ == "__main__":
             plot=False,
         )
     obj_value = pyo.value(m.obj)
+
+    # Retain direct calibration residuals; plotted interpolation is not the fit metric.
+    import json
+    from Profile_DeltaCp import equilibrium_metrics
+    import pandas as pd
+    fit_blocks = [
+        (name.rsplit('_', 1)[1], pd.read_csv(os.path.join(dataset_dir, name + '.csv')),
+         getattr(m, name)) for name in param_block_names
+    ]
+    fit_metrics, residuals = equilibrium_metrics(fit_blocks)
+    residuals.to_csv('data/Plots/Equilibrium_Residuals.csv', index=False)
+    fit_metrics.update(objective=obj_value, solver_termination=str(results.solver.termination_condition))
+    with open('data/Plots/Fit_Metrics.json', 'w') as stream:
+        json.dump(fit_metrics, stream, indent=2, allow_nan=False)
 
     # %% Plotting
 

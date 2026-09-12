@@ -29,7 +29,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
     key = {}
 
     i = 0
-    for file in os.listdir(dataset_dir):
+    for file in sorted(os.listdir(dataset_dir)):
         if 'dHabs' not in file:
             name = file.split('_')[0]
             key[name] = markers[i % len(markers)]
@@ -69,6 +69,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
     lines_data = []
     sigma_avg_1 = []
     sigma_avg_2 = []
+    sample_counts = []
     fig_VLE, ax_VLE = plt.subplots(figsize=(14, 10))
     fig_Ch_Eq, ax_Ch_Eq = plt.subplots(figsize=(10, 10))
     # fig_P, ax_P = plt.subplots(figsize=(14, 10))
@@ -103,6 +104,10 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
         'K1': [],
         'K2': []
     }
+    state_init = ModularPropertiesInherentReactionsInitializer(
+        solver="ipopt", solver_options=optarg, output_level=init_outlevel
+    )
+    solver = get_solver("ipopt", options=optarg)
 
     # Iterates through each temperature value chosen
     for i_t, T in enumerate(Temperature):
@@ -111,7 +116,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
         # Gets the min and max loading to set up the loading range for each temperature
         loading_min = []
         loading_max = []
-        for file in os.listdir(dataset_dir):
+        for file in sorted(os.listdir(dataset_dir)):
             df_data = pd.read_csv(os.path.join(dataset_dir, file))
             if 'VLE' in file and (
                     w_amine in df_data[amine_concentration].values and T in df_data[temperature].values):
@@ -139,29 +144,32 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
             'x_true': x_true,
             'act': act
         }
-        for alpha in loading:
-            m = pyo.ConcreteModel()
-            m.params = GenericParameterBlock(**config)
-            load_fitted_params(m, df)
-            setup_param_scaling(m)
-            m.state_block = m.params.build_state_block([0], has_phase_equilibrium=False, defined_state=True)
-            blk = m.state_block[0]
+        m = pyo.ConcreteModel()
+        m.params = GenericParameterBlock(**config)
+        load_fitted_params(m, df)
+        setup_param_scaling(m)
+        m.state_block = m.params.build_state_block([0], has_phase_equilibrium=False, defined_state=True)
+        blk = m.state_block[0]
+        blk.temperature.fix(T_K)
+
+        for i_alpha, alpha in enumerate(loading):
             x_dic = get_mole_fraction(alpha, w_amine)
             blk.flow_mol.fix(x_dic['n_T'])
             components = species_dic['components']
             for c in components:
                 blk.mole_frac_comp[c].fix(x_dic[c])
-            blk.temperature.fix(T_K)
             # blk.pressure.fix(P_sys)
 
             iscale.calculate_scaling_factors(m)
-            state_init = ModularPropertiesInherentReactionsInitializer(solver="ipopt",
-                                                                       solver_options=optarg,
-                                                                       output_level=init_outlevel)
-            state_init.initialize(m.state_block)
+            if i_alpha == 0:
+                state_init.initialize(m.state_block)
             m_scaled = pyo.TransformationFactory('core.scale_model').create_using(m, rename=False)
-            solver = get_solver("ipopt", options=optarg)
-            solver.solve(m_scaled, tee=False)
+            results = solver.solve(m_scaled, tee=False)
+            if not pyo.check_optimal_termination(results):
+                raise RuntimeError(
+                    f"Plot state failed at {T:g} C and loading {alpha:.6g}: "
+                    f"{results.solver.termination_condition}"
+                )
             pyo.TransformationFactory('core.scale_model').propagate_solution(m_scaled, m)
 
             model_data['P'].append(sum([pyo.value(blk.fug_phase_comp["Liq", m]) / 1e3 for m in molecules]))
@@ -212,7 +220,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
         n = 0
         mec = ['black', 'gray', 'white']
         #%% Plotting data
-        for file in os.listdir(data_dir):
+        for file in sorted(os.listdir(data_dir)):
             name = file.split('_')[0]
             df_data = pd.read_csv(os.path.join(data_dir, file))
 
@@ -277,6 +285,7 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
         model = ax_VLE.semilogy(loading, model_data['P_CO2'], linestyle='dashed', color=mfc[i_t],
                                 label=f"{T} C - eNRTL - {Sigma_1 / n:1.2%}")
         sigma_avg_1.append(Sigma_1 / n)
+        sample_counts.append(n)
         lines_model.append(model)
 
         roch = ax_VLE.semilogy(loading_constrained, P_CO2_Roch, linestyle='dotted', color=mfc[i_t],
@@ -295,11 +304,11 @@ def plot_fit(df, system_fit_dic, species_dic, get_mole_fraction, obj_value, opta
     #%% ---- Model Fit
 
     avg_model = ax_VLE.semilogy([.2], [10], linestyle='-', color='k',
-                                label=f"Average MAPE - {np.mean(sigma_avg_1):>2.2%}")
+                                label=f"Plotted-row MAPE (incl. Xu) - {np.average(sigma_avg_1, weights=sample_counts):>2.2%}")
     lines_model.append(avg_model)
 
     avg_roch = ax_VLE.semilogy([.2], [10], linestyle='-', color='k',
-                               label=f"Average MAPE - {np.mean(sigma_avg_2):>2.2%}")
+                               label=f"Plotted-row MAPE (incl. Xu) - {np.average(sigma_avg_2, weights=sample_counts):>2.2%}")
     lines_roch.append(avg_roch)
 
     handles = [data[0] for data in lines_data]

@@ -1,0 +1,89 @@
+{
+  "speciation": {
+    "n": 172,
+    "unit": "mol/mol true species",
+    "mae": 0.004672516257672781,
+    "rmse": 0.006443427471202094,
+    "bias": 0.0009735969796487377,
+    "sources": {
+      "Jakobsen_2005_ChEq": {
+        "n": 96,
+        "unit": "mol/mol true species",
+        "mae": 0.0057758664441489435,
+        "rmse": 0.007977759278019043,
+        "bias": 0.002016258838772465
+      },
+      "Matin_2012_ChEq": {
+        "n": 76,
+        "unit": "mol/mol true species",
+        "mae": 0.0032788107589660507,
+        "rmse": 0.0036834776291401624,
+        "bias": -0.00034344957924439156
+      }
+    }
+  },
+  "vle": {
+    "n": 240,
+    "unit": "kPa",
+    "mae": 13.926661008585716,
+    "rmse": 94.0245458327836,
+    "bias": 4.130989813163144,
+    "log_rmse": 0.46167222251972323,
+    "pressure_mape_fraction": 0.38895609184992347,
+    "pressure_mape_percent": 38.895609184992345,
+    "sources": {
+      "Aronu_2011_VLE": {
+        "n": 89,
+        "unit": "kPa",
+        "mae": 0.4460904542072571,
+        "rmse": 1.2073531609951613,
+        "bias": -0.16745545680688384,
+        "log_rmse": 0.3315133627100314,
+        "pressure_mape_fraction": 0.260457877363937,
+        "pressure_mape_percent": 26.0457877363937
+      },
+      "Hilliard_2008_VLE": {
+        "n": 55,
+        "unit": "kPa",
+        "mae": 1.783623217845376,
+        "rmse": 5.197190741578996,
+        "bias": 1.38159281654031,
+        "log_rmse": 0.4653269300410502,
+        "pressure_mape_fraction": 0.4317511138789662,
+        "pressure_mape_percent": 43.17511138789662
+      },
+      "Idris_2014_VLE": {
+        "n": 30,
+        "unit": "kPa",
+        "mae": 0.3937791191811618,
+        "rmse": 1.5150898785710734,
+        "bias": -0.30230370964318065,
+        "log_rmse": 0.6833620966844872,
+        "pressure_mape_fraction": 0.41752541259133324,
+        "pressure_mape_percent": 41.752541259133324
+      },
+      "Jou_1995_VLE": {
+        "n": 47,
+        "unit": "kPa",
+        "mae": 64.69552454909561,
+        "rmse": 212.30461117291975,
+        "bias": 23.223763499281873,
+        "log_rmse": 0.5563531992850417,
+        "pressure_mape_fraction": 0.6494144004525851,
+        "pressure_mape_percent": 64.94144004525852
+      },
+      "Mamun_2005_VLE": {
+        "n": 19,
+        "unit": "kPa",
+        "mae": 8.004962487984352,
+        "rmse": 9.236102449068472,
+        "bias": -8.004962487984352,
+        "log_rmse": 0.21839433376461195,
+        "pressure_mape_fraction": 0.17758739453876787,
+        "pressure_mape_percent": 17.75873945387679
+      }
+    }
+  },
+  "objective": 66.58853601333162,
+  "solver_termination": "optimal"
+}

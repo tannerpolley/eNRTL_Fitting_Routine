@@ -35,7 +35,7 @@ from copy import deepcopy
 from functools import partial
 
 # Import Pyomo units
-from pyomo.environ import Constraint, exp, Expression, log, Reals, units as pyunits, value, Var
+from pyomo.environ import Constraint, exp, Expression, log, Param, Reals, units as pyunits, value, Var
 import pyomo.environ as pyo
 from pyomo.core.expr.calculus.derivatives import Modes, differentiate
 from pyomo.util.check_units import assert_units_equivalent
@@ -48,7 +48,12 @@ from idaes.core.util.constants import Constants
 from idaes.models.properties.modular_properties.state_definitions import FTPx
 from idaes.models.properties.modular_properties.base.generic_property import StateIndex
 from idaes.models.properties.modular_properties.eos.ideal import Ideal
-from idaes.models.properties.modular_properties.eos.enrtl import ENRTL, EnthMolPhaseBasis
+from idaes.models.properties.modular_properties.eos.enrtl import (
+    ClosestApproach,
+    ENRTL,
+    EnthMolPhaseBasis,
+    reduced_symmetric_gibbs_phase_temperature_derivative,
+)
 from idaes.models.properties.modular_properties.eos.enrtl_reference_states import InfiniteDilutionSingleSolvent
 from idaes.models.properties.modular_properties.reactions.equilibrium_forms import log_power_law_equil
 from idaes.models.properties.modular_properties.base.utility import ConcentrationForm
@@ -61,6 +66,125 @@ import idaes.logger as idaeslog
 
 # Set up logger
 _log = idaeslog.getLogger(__name__)
+
+
+class ENRTLDirectTemperatureDerivative(ENRTL):
+    """eNRTL enthalpy with symbolic temperature derivatives kept as expressions."""
+
+    @staticmethod
+    def enth_mol_phase(b, p):
+        pobj = b.params.get_phase(p)
+        if not pobj.is_aqueous_phase():
+            return Ideal.enth_mol_phase(b, p)
+
+        try:
+            inherent_rxn_idx = b.params.inherent_reaction_idx
+        except AttributeError:
+            enth_mol_ideal = sum(
+                b.mole_frac_phase_comp_true[p, j]
+                * Ideal.enth_mol_phase_comp(b, p, j)
+                for j in b.components_in_phase(p, true_basis=True)
+            )
+            return enth_mol_ideal + ENRTLDirectTemperatureDerivative._enth_mol_phase_excess(
+                b, p
+            )
+
+        try:
+            basis = pobj.config.equation_of_state_options["enth_mol_phase_basis"]
+        except KeyError:
+            basis = EnthMolPhaseBasis.true
+
+        if basis == EnthMolPhaseBasis.true:
+            enth_mol_ideal = sum(
+                b.mole_frac_phase_comp_true[p, j]
+                * Ideal.enth_mol_phase_comp(b, p, j)
+                for j in b.components_in_phase(p, true_basis=True)
+            )
+            return enth_mol_ideal + ENRTLDirectTemperatureDerivative._enth_mol_phase_excess(
+                b, p
+            )
+        if basis != EnthMolPhaseBasis.apparent:
+            raise ConfigurationError
+
+        enth_mol_ideal = sum(
+            b.mole_frac_phase_comp_apparent[p, j]
+            * Ideal.enth_mol_phase_comp(b, p, j)
+            for j in b.components_in_phase(p, true_basis=False)
+        ) + sum(
+            b.apparent_inherent_reaction_extent[r] * b.dh_rxn[r]
+            for r in inherent_rxn_idx
+        ) / b.flow_mol_phase[p]
+        flow_true = sum(
+            b.flow_mol_phase_comp_true[p, j]
+            for j in b.components_in_phase(p, true_basis=True)
+        )
+        return (
+            enth_mol_ideal
+            + flow_true
+            / b.flow_mol_phase["Liq"]
+            * ENRTLDirectTemperatureDerivative._enth_mol_phase_excess(b, p)
+        )
+
+    @staticmethod
+    def _enth_mol_phase_excess(b, p):
+        pobj = b.params.get_phase(p)
+        pname = pobj.local_name
+        if not pobj.is_aqueous_phase():
+            units = b.params.get_metadata().derived_units
+            return 0 * units.ENERGY_MOLE
+
+        if not b.is_property_constructed(pname + "_d_log_gamma_lc_I0_dT"):
+            raise NotImplementedError(
+                "Enthalpy calculations are not implemented for your choice of reference state."
+            )
+
+        R = ENRTL.gas_constant(b)
+        d_log_gamma_lc_I0_dT = getattr(b, pname + "_d_log_gamma_lc_I0_dT")
+        X = getattr(b, pname + "_X")
+        G = getattr(b, pname + "_G")
+        dG_dT = getattr(b, pname + "_dG_dT")
+        tau = getattr(b, pname + "_tau")
+        dtau_dT = getattr(b, pname + "_dtau_dT")
+
+        enth_mol_phase_excess_lc = -R * b.temperature**2 * (
+            reduced_symmetric_gibbs_phase_temperature_derivative(
+                b, X, G, dG_dT, tau, dtau_dT
+            )
+            - sum(
+                b.mole_frac_phase_comp_true[p, s]
+                * d_log_gamma_lc_I0_dT[s]
+                for s in b.components_in_phase(p, true_basis=True)
+            )
+        )
+
+        Ix = getattr(b, pname + "_ionic_strength")
+        dA_dT = ENRTLDirectTemperatureDerivative._dA_DH_dT(b, pname)
+        enth_mol_phase_excess_DH = R * b.temperature**2 * (
+            4
+            * Ix
+            / ClosestApproach
+            * log(1 + ClosestApproach * Ix**0.5)
+            * dA_dT
+        )
+        enth_mol_phase_excess_born = getattr(
+            b, pname + "_enth_mol_excess_born"
+        )
+        return (
+            enth_mol_phase_excess_lc
+            + enth_mol_phase_excess_DH
+            + enth_mol_phase_excess_born
+        )
+
+    @staticmethod
+    def _dA_DH_dT(b, pname):
+        """Differentiate A ∝ v**(-1/2) * (eps*T)**(-3/2) at fixed true x."""
+        v = getattr(b, pname + "_vol_mol_solvent")
+        dv_dT = differentiate(v, b.temperature, mode=Modes.reverse_symbolic)
+        eps = getattr(b, pname + "_relative_permittivity_solvent")
+        d_eps_dT = getattr(b, pname + "_d_relative_permittivity_solvent_dT")
+        return -getattr(b, pname + "_A_DH") / 2 * (
+            dv_dT / v + 3 * d_eps_dT / eps + 3 / b.temperature
+        )
 
 
 # def initialize_inherent_reactions(indexed_blk):
@@ -908,17 +1032,55 @@ class KeqCullinaneRochelle:
         )
         set_param_from_config(rblock, param="k_eq_coeff", index="4", config=config)
 
+        if abs(value(rblock.k_eq_coeff_4 * pyunits.K)) > 1e-12:
+            raise ConfigurationError(
+                "The reference-state reaction parameterization requires k_eq_coeff_4 = 0."
+            )
+
+        temperature_ref = 353.15
+        gas_constant = value(
+            pyunits.convert(Constants.gas_constant, pyunits.J / pyunits.mol / pyunits.K)
+        )
+        k1 = value(rblock.k_eq_coeff_1)
+        k2 = value(rblock.k_eq_coeff_2 / pyunits.K)
+        k3 = value(rblock.k_eq_coeff_3)
+        rblock.temperature_ref = Param(
+            initialize=temperature_ref,
+            units=pyunits.K,
+            doc="Reference temperature for reaction parameters",
+        )
+        rblock.log_k_ref = Var(
+            initialize=k1 + k2 / temperature_ref + k3 * pyo.log(temperature_ref),
+            units=pyunits.dimensionless,
+            doc="Natural logarithm of the equilibrium constant at the reference temperature",
+        )
+        rblock.dh_rxn_ref = Var(
+            initialize=gas_constant * (-k2 + k3 * temperature_ref),
+            units=pyunits.J / pyunits.mol,
+            doc="Reaction enthalpy at the reference temperature",
+        )
+        rblock.dcp_rxn = Var(
+            initialize=gas_constant * k3,
+            units=pyunits.J / pyunits.mol / pyunits.K,
+            doc="Constant reaction heat-capacity change",
+        )
+        rblock.log_k_ref.fix()
+        rblock.dh_rxn_ref.fix()
+        rblock.dcp_rxn.fix()
+
     @staticmethod
     def return_expression(b, rblock, r_idx, T):
-        return exp(b.log_k_eq[r_idx]) * ((pyunits.m) ** 3 / pyunits.mol)
+        return exp(b.log_k_eq[r_idx])
 
     @staticmethod
     def return_log_expression(b, rblock, r_idx, T):
+        T_ref = rblock.temperature_ref
         return b.log_k_eq[r_idx] == (
-                rblock.k_eq_coeff_1
-                + rblock.k_eq_coeff_2 / T
-                + rblock.k_eq_coeff_3 * log(T / pyunits.K)
-                + rblock.k_eq_coeff_4 * T
+                rblock.log_k_ref
+                + rblock.dh_rxn_ref / (Constants.gas_constant * T_ref)
+                * (1 - T_ref / T)
+                + rblock.dcp_rxn / Constants.gas_constant
+                * (log(T / T_ref) + T_ref / T - 1)
         )
 
     @staticmethod
@@ -933,11 +1095,7 @@ class enthRxnCullinaneRochelle:
 
     @staticmethod
     def return_expression(b, rblock, r_idx, T):
-        return Constants.gas_constant * (
-                -rblock.k_eq_coeff_2
-                + rblock.k_eq_coeff_3 * T
-                + rblock.k_eq_coeff_4 * T ** 2
-        )
+        return rblock.dh_rxn_ref + rblock.dcp_rxn * (T - rblock.temperature_ref)
 
     @staticmethod
     def calculate_scaling_factors(b, rblock):
@@ -1628,7 +1786,7 @@ def get_prop_dict(components=None):
         "phases": {
             "Liq": {
                 "type": AqueousPhase,
-                "equation_of_state": ENRTL,
+                "equation_of_state": ENRTLDirectTemperatureDerivative,
                 "equation_of_state_options": {
                     "property_basis": "true",
                     "tau_rule": AkulaTau,
@@ -1673,12 +1831,13 @@ def get_prop_dict(components=None):
     if rxn_combinations is not None:
         combined_rxns_dict = {}
         excluded_rxns = rxn_combinations["excluded_rxns"]
-        rxn_combinations.pop("excluded_rxns")
         if excluded_rxns is None:
             excluded_rxns = set()
         else:
             excluded_rxns = set(excluded_rxns)
         for combo_name, combo_dict in rxn_combinations.items():
+            if combo_name == "excluded_rxns":
+                continue
             combined_rxn_dict = deepcopy(_combined_rxn_template)
             for component_rxn, rxn_stoich_coeff in combo_dict.items():
                 assert component_rxn in raw_inherent_reactions

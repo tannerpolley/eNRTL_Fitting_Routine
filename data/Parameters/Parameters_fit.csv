@@ -1,9 +1,7 @@
-Description,Name,Value,Uncertainty,Percent,Object,Object_Name
-bic rxn coeff,"$k_{bic,1}$",176.67509628350157,9.788119840996838,0.055401808443281325,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_1
-bic rxn coeff,"$k_{bic,2}$",-1534.8532260525365,1568.7841199739908,1.0221069307120139,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_2
-bic rxn coeff,"$k_{bic,3}$",-29.186090853276983,2.490312958308964,0.085325334277487,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_3
-bic rxn coeff,"$k_{bic,4}$",0.012315921968434704,0.01907806910387765,1.549057322121243,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_4,params.reaction_MEA_bicarbonate_formation_combo.k_eq_coeff_4
-car rxn coeff,"$k_{car,1}$",234.21447518202274,9.788513047461864,0.041792946571105806,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_1
-car rxn coeff,"$k_{car,2}$",-1515.7879130499816,1705.3438657688562,1.1250544031172942,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_2
-car rxn coeff,"$k_{car,3}$",-36.66529138186024,2.6086681424503837,0.07114816340286864,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_3
-car rxn coeff,"$k_{car,4}$",-0.008834687017404558,0.020673778243541604,2.3400691165192082,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_4,params.reaction_MEA_carbamate_formation_combo.k_eq_coeff_4
+Description,Name,Value,Curvature_Scale,Relative_Curvature_Scale,Object,Object_Name
+bic log K at 353.15 K,"$\ln K_{bic,ref}$",5.309228910495366,0.13753180635643678,0.025904290185070334,params.reaction_MEA_bicarbonate_formation_combo.log_k_ref,params.reaction_MEA_bicarbonate_formation_combo.log_k_ref
+bic reaction enthalpy,"$\Delta H_{bic,ref}$",-64824.68992278605,3664.0078886733922,0.05652179583176817,params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref,params.reaction_MEA_bicarbonate_formation_combo.dh_rxn_ref
+bic reaction heat capacity,"$\Delta C_{p,bic}$",-182.71028026665462,114.34821291674182,0.625844439348774,params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn,params.reaction_MEA_bicarbonate_formation_combo.dcp_rxn
+car log K at 353.15 K,"$\ln K_{car,ref}$",11.721141173375184,0.11308466489320343,0.009647922776502138,params.reaction_MEA_carbamate_formation_combo.log_k_ref,params.reaction_MEA_carbamate_formation_combo.log_k_ref
+car reaction enthalpy,"$\Delta H_{car,ref}$",-101995.07706216491,3248.1646551036692,0.031846288552965625,params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref,params.reaction_MEA_carbamate_formation_combo.dh_rxn_ref
+car reaction heat capacity,"$\Delta C_{p,car}$",-282.31471975068496,122.48538484465149,0.4338611353769283,params.reaction_MEA_carbamate_formation_combo.dcp_rxn,params.reaction_MEA_carbamate_formation_combo.dcp_rxn
